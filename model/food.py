@@ -1,0 +1,17 @@
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+
+from config import database
+
+
+class FoodVO(database.base):
+    __tablename__ = "food"
+
+    id = Column(Integer, primary_key=True, index=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurant.id"))
+    name = Column(String)
+    src = Column(String)
+    price = Column(String)
+    weight = Column(String)
+
+    restaurant = relationship("RestaurantVO", back_populates="food_items")
