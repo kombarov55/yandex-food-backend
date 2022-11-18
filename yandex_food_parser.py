@@ -1,14 +1,17 @@
 import time
 import urllib
+from datetime import datetime
 from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright, Page
+from sqlalchemy.orm import Session
 
 import api_service
 import xlsx_service
 from config import database
 from model.restaurant import RestaurantVO
-from repository import restaurant_repository, food_repository
+from model.xlsx_request import XlsxRequestVO, XlsxRequestStatus
+from repository import restaurant_repository, food_repository, xlsx_request_repository
 
 
 def set_location(page: Page):
@@ -144,25 +147,41 @@ def scroll_slowly_to_bottom(page):
             break
 
 
-def process_xlsx(session, food_name):
+def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
     with sync_playwright() as p:
+        xlsx_request_vo.status = XlsxRequestStatus.started
+        xlsx_request_vo.start_date = datetime.now()
+        xlsx_request_repository.update(session, xlsx_request_vo)
+        print("processing xlsx request: food_name={} start_date={}".format(xlsx_request_vo.food_name,
+                                                                           xlsx_request_vo.start_date))
+
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
         set_location(page)
-        search(page, food_name)
+        search(page, xlsx_request_vo.food_name)
         parse_all_shops(page, session)
+
         xs = food_repository.get_all(session)
-        xlsx_service.to_csv(xs)
+        filename = "{}.xlsx".format(str(time.time()))
+        path = "./reports/{}".format(filename)
+        xlsx_service.to_csv(xs, path)
+
+        xlsx_request_vo.status = XlsxRequestStatus.completed
+        xlsx_request_vo.filename = filename
+        xlsx_request_vo.end_date = datetime.now()
+        xlsx_request_repository.update(session, xlsx_request_vo)
+        print("completed")
 
 
 def main():
-    database.base.metadata.drop_all(bind=database.engine)
     database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
 
-    process_xlsx(session, "тоблерон")
+    while True:
+        xs = xlsx_request_repository.find_not_started(session)
+        for xlsx_request_vo in xs:
+            process_xlsx(session, xlsx_request_vo)
+        time.sleep(10)
 
-
-main()
-
+# main()

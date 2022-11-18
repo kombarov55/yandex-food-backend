@@ -7,9 +7,7 @@ from xlsxwriter.worksheet import Worksheet
 from model.food import FoodVO
 
 
-def to_csv(xs: list[FoodVO]):
-    path = "./reports/{}.xlsx".format(time.time())
-
+def to_csv(xs: list[FoodVO], path: str):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
 
@@ -27,7 +25,6 @@ def to_csv(xs: list[FoodVO]):
         col += 1
         row += 1
 
-
     workbook.close()
 
 
@@ -42,5 +39,3 @@ def write_header(worksheet: Worksheet, workbook: Workbook):
     col += 1
     worksheet.write(0, col, "Вес", bold)
     col += 1
-
-to_csv([])
