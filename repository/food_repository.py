@@ -15,3 +15,7 @@ def save_all(session: Session, xs: list[FoodVO]):
             session.add(x)
     session.commit()
 
+
+def get_all(session: Session):
+    return session.query(FoodVO).all()
+

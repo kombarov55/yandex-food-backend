@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 from config import database
 from model.restaurant import RestaurantVO
 from repository import restaurant_repository, food_repository
-from service import api_service
+from service import api_service, xlsx_service
 
 database.base.metadata.drop_all(bind=database.engine)
 database.base.metadata.create_all(bind=database.engine)
@@ -154,4 +154,6 @@ with sync_playwright() as p:
     set_location()
     search("тоблерон")
     parse_all_shops()
+    xs = food_repository.get_all(session)
+    xlsx_service.write_food(xs)
     page.pause()
