@@ -1,6 +1,4 @@
-from urllib.parse import urlparse
-
-from service.api_service import load_retail_food
+from api_service import load_retail_food
 
 # href = "/retail/azbuka_vkusa/catalog/2544?placeSlug=azbukavkusa_serafimovicha_2"
 # o = urlparse(href)

@@ -2,19 +2,16 @@ import time
 import urllib
 from urllib.parse import urlparse
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page
 
+import api_service
+import xlsx_service
 from config import database
 from model.restaurant import RestaurantVO
 from repository import restaurant_repository, food_repository
-from service import api_service, xlsx_service
-
-database.base.metadata.drop_all(bind=database.engine)
-database.base.metadata.create_all(bind=database.engine)
-session = database.session_local()
 
 
-def set_location():
+def set_location(page: Page):
     page.wait_for_selector("(//h2[@class='DesktopHeaderBlock_headerText DesktopHeaderBlock_headerTextBold'])[1]")
     location_text = page.locator("span.DesktopAddressButton_address").inner_text()
     if location_text == "Укажите адрес доставки":
@@ -32,15 +29,15 @@ def set_location():
         "//span[@class='DesktopAddressButton_addressStreet' and contains(text(), 'Красная площадь')]")
 
 
-def search(food_name):
+def search(page, food_name):
     page.goto("https://eda.yandex.ru/search?query={}&type=all".format(food_name))
     page.wait_for_selector("//h1[contains(text(),'Найден')]")
 
 
-def parse_all_shops():
+def parse_all_shops(page, session):
     page.wait_for_load_state(state="networkidle")
-    scroll_slowly_to_bottom()
-    hrefs = get_hrefs()
+    scroll_slowly_to_bottom(page)
+    hrefs = get_hrefs(page)
     for href in hrefs:
         slug = get_query_param(href, "placeSlug")
         is_retail = href.startswith("/retail")
@@ -48,12 +45,12 @@ def parse_all_shops():
         page.wait_for_load_state(state="networkidle")
 
         if not is_retail:
-            parse_restaurant(slug)
+            parse_restaurant(page, session, slug)
         else:
-            parse_shop(slug)
+            parse_shop(session, page, slug)
 
 
-def parse_restaurant(slug):
+def parse_restaurant(page, session, slug):
     page.wait_for_selector("div.NewCartFooterBottomBanner_root")
     time.sleep(1)
 
@@ -96,15 +93,15 @@ def parse_restaurant(slug):
     food_repository.save_all(session, food_list)
 
 
-def parse_shop(slug):
+def parse_shop(session, page, slug):
     vo = api_service.load_retail_info(slug)
     restaurant_repository.save(session, vo)
-    category_ids = get_retail_category_ids()
+    category_ids = get_retail_category_ids(page)
     food_list = api_service.load_retail_food(category_ids, slug)
     food_repository.save_all(session, food_list)
 
 
-def get_retail_category_ids() -> list[int]:
+def get_retail_category_ids(page) -> list[int]:
     a_els = page.locator("a.UiKitDesktopShopMenuItem_menuLink")
     result = []
     for i in range(0, a_els.count()):
@@ -117,7 +114,7 @@ def get_retail_category_ids() -> list[int]:
     return result
 
 
-def get_hrefs():
+def get_hrefs(page):
     a_els = page.locator("a.DesktopSearchPlaceCarousel_link")
     result = []
     for i in range(0, a_els.count()):
@@ -125,7 +122,7 @@ def get_hrefs():
     return result
 
 
-def scroll(y):
+def scroll(page, y):
     page.evaluate("window.scrollTo(0, {})".format(y))
 
 
@@ -134,7 +131,7 @@ def get_query_param(url, param):
     return urllib.parse.parse_qs(q.query)[param][0]
 
 
-def scroll_slowly_to_bottom():
+def scroll_slowly_to_bottom(page):
     current_height = 0
     delta = 500
 
@@ -147,13 +144,25 @@ def scroll_slowly_to_bottom():
             break
 
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
-    page = browser.new_page()
-    page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
-    set_location()
-    search("тоблерон")
-    parse_all_shops()
-    xs = food_repository.get_all(session)
-    xlsx_service.write_food(xs)
-    page.pause()
+def process_xlsx(session, food_name):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+        page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
+        set_location(page)
+        search(page, food_name)
+        parse_all_shops(page, session)
+        xs = food_repository.get_all(session)
+        xlsx_service.to_csv(xs)
+
+
+def main():
+    database.base.metadata.drop_all(bind=database.engine)
+    database.base.metadata.create_all(bind=database.engine)
+    session = database.session_local()
+
+    process_xlsx(session, "тоблерон")
+
+
+main()
+
