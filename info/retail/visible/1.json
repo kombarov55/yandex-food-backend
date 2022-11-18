@@ -1,0 +1,15 @@
+{
+  "id": 19339,
+  "uid": "19339",
+  "parentId": 165,
+  "parent_uid": "165",
+  "name": "Завтраки",
+  "schedule": null,
+  "available": true,
+  "gallery": [],
+  "items": [],
+  "show_in": [
+    "categories_carousel",
+    "horizontal_carousel"
+  ]
+}

@@ -9,5 +9,7 @@ class RestaurantVO(database.base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-
-    food_items = relationship("FoodVO", back_populates="restaurant")
+    rating = Column(String)
+    rating_count = Column(Integer)
+    delivery_time = Column(String)
+    address = Column(String)
