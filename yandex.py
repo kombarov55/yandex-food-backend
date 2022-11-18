@@ -54,22 +54,50 @@ def parse_all_shops():
 
 
 def parse_restaurant(slug):
-    page.click("//button[@class='RestaurantHeader_badge']//*[name()='svg']")
-    page.wait_for_selector("div.AppPopup_wrapper")
-    restaurant_name = page.locator(
-        "//h3[@class='UiKitText_root UiKitText_Title4 UiKitText_Bold UiKitText_Text']").inner_text()
+    page.wait_for_selector("div.NewCartFooterBottomBanner_root")
+    time.sleep(1)
 
-    vo = RestaurantVO(name=restaurant_name)
+    if page.locator("div.Modal_modalWrapper").is_visible():
+        page.click("div.ModalSurge_button")
+
+    restaurant_name = page.locator("h1.RestaurantHeader_name").inner_text()
+    rich_badges = page.locator("button.RestaurantHeader_richBadge")
+
+    delivery_time = ""
+
+    if rich_badges.count() == 2:
+        delivery_badge = rich_badges.nth(0)
+        delivery_time = delivery_badge.locator("div.RestaurantHeader_badgeTopLine").inner_text()
+
+        rating_badge = rich_badges.nth(1)
+        rating = rating_badge.locator("div.RestaurantHeader_badgeTopLine").inner_text()
+        rating_count = rating_badge.locator("div.RestaurantHeader_badgeBottomLine").inner_text()
+    else:
+        rating_badge = rich_badges.nth(0)
+        rating = rating_badge.locator("div.RestaurantHeader_badgeTopLine").inner_text()
+        rating_count = rating_badge.locator("div.RestaurantHeader_badgeBottomLine").inner_text()
+
+    page.click("button.RestaurantHeader_badge")
+    page.wait_for_selector("div.RestaurantPopup_infoPopup")
+
+    address = page.locator("span.RestaurantPopup_infoAddr").inner_text()
+
+    vo = RestaurantVO(
+        slug=slug,
+        name=restaurant_name,
+        rating=rating,
+        rating_count=rating_count,
+        delivery_time=delivery_time,
+        address=address
+    )
+    print(f"{restaurant_name} {rating} {rating_count} {delivery_time} {address}")
     restaurant_repository.save(session, vo)
-
-    address = page.locator("//span[@class='RestaurantPopup_infoAddr']").inner_text()
-    print("{} {} {}".format(slug, restaurant_name, address))
     food_list = api_service.load_restaurant_food(slug, slug)
     food_repository.save_all(session, food_list)
 
 
 def parse_shop(slug):
-    vo = RestaurantVO(name=slug)
+    vo = api_service.load_retail_info(slug)
     restaurant_repository.save(session, vo)
     category_ids = get_retail_category_ids()
     food_list = api_service.load_retail_food(category_ids, slug)

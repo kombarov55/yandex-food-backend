@@ -51,3 +51,24 @@ POST https://eda.yandex.ru/api/v2/menu/goods
 payload.categories[].items[]{id, name, description, price, picture.url, weight}
 
 id категорий, по которым делать запросы:
+
+- закрывать "много заказов"
+  - подождать полной загрузки страницы
+  - если есть элемент модалки, закрыть
+- остальные поля магазина/ресторана
+  - ресторан:
+    контейнер: div.RestaurantHeader_actions
+    3 кнопки: https://eda.yandex.ru/r/shaurma_xdrmv?placeSlug=shaurma_yxosg
+    2 кнопки: https://eda.yandex.ru/r/falafel_bro?placeSlug=FalafelBro
+    1 кнопка: https://eda.yandex.ru/r/bistro_stolovaya_1?placeSlug=bistro_stolovaya_1_fdvnp
+
+    - Название: h1.RestaurantHeader_name
+    - если 2 button.RestaurantHeader_richBadge:
+      - 1ый: время доставки. дочерние:
+        - время доставки: div.RestaurantHeader_badgeTopLine
+      - 2ой: рейтинг. дочерние:
+        - рейтинг: div.RestaurantHeader_badgeTopLine
+        - количество оценок: div.RestaurantHeader_badgeBottomLine
+    - Адрес:
+      - клик на button.RestaurantHeader_badge
+      - Адрес: span.RestaurantPopup_infoAddr

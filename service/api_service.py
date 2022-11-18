@@ -1,6 +1,7 @@
 import requests
 
 from model.food import FoodVO
+from model.restaurant import RestaurantVO
 
 
 def load_restaurant_food(slug: str, restaurant_id) -> list[FoodVO]:
@@ -64,6 +65,31 @@ def load_retail_food(category_ids: list[int], slug) -> list[FoodVO]:
 
         print("slug={} len(result)={}".format(slug, len(result)))
         return result
+
+
+def load_retail_info(slug) -> RestaurantVO:
+    rs = requests.get("https://eda.yandex.ru/api/v2/catalog/{}".format(slug))
+    json = rs.json()
+
+    found_place = json["payload"]["foundPlace"]
+    place = json["payload"]["foundPlace"]["place"]
+
+    delivery_time = ""
+
+    location_params = found_place["locationParams"]
+    if location_params is not None:
+        delivery_time = location_params["deliveryTime"]["min"] + "-" + location_params["deliveryTime"]["max"],
+
+    return RestaurantVO(
+        slug=slug,
+        name=place["name"],
+        rating=place["rating"],
+        rating_count=place["ratingCount"],
+        delivery_time=delivery_time,
+        address=place["address"]["short"],
+        longitude=place["address"]["location"]["longitude"],
+        latitude=place["address"]["location"]["latitude"]
+    )
 
 
 def get_field(item: dict, name: str):
