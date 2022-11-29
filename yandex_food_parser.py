@@ -155,7 +155,7 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
         print("processing xlsx request: food_name={} start_date={}".format(xlsx_request_vo.food_name,
                                                                            xlsx_request_vo.start_date))
 
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
         set_location(page)
