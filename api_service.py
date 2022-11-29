@@ -28,7 +28,7 @@ def load_restaurant_food(slug: str, restaurant_id):
     return result
 
 
-def load_retail_food(category_ids: list[int], slug):
+def load_retail_food(category_ids: list, slug):
     print("loading food for /retail slug={}".format(slug))
 
     result = []
