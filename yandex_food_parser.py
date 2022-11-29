@@ -15,7 +15,8 @@ from repository import restaurant_repository, food_repository, xlsx_request_repo
 
 
 def set_location(page: Page):
-    page.wait_for_selector("(//h2[@class='DesktopHeaderBlock_headerText DesktopHeaderBlock_headerTextBold'])[1]")
+    # page.wait_for_selector("(//h2[@class='DesktopHeaderBlock_headerText DesktopHeaderBlock_headerTextBold'])[1]")
+    page.wait_for_load_state("networkidle")
     location_text = page.locator("span.DesktopAddressButton_address").inner_text()
     if location_text == "Укажите адрес доставки":
         page.locator("button.DesktopHeader_addressButton").click()
