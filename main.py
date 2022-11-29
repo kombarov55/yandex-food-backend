@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+import uvicorn
+from fastapi import FastAPI, Response
 from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
@@ -28,11 +29,17 @@ async def xlsx(food_name: str):
 
 
 @app.get("/xlsx_requests")
-async def get_all_xlsx_requests():
+async def get_all_xlsx_requests(response: Response):
+    response.headers["x-cat-foo"] = "hello worldbash"
+    response.headers["allow-origins"] = "*"
+    response.headers["allow-credentials"] = "true"
+    response.headers["allow-methods"] = "*"
+    response.headers["allow-headers"] = "*"
     return xlsx_request_repository.get_all(session)
 
 
 app.mount("/static", StaticFiles(directory="reports"), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,3 +47,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
