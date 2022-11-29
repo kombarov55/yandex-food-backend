@@ -4,7 +4,7 @@ from model.food import FoodVO
 from model.restaurant import RestaurantVO
 
 
-def load_restaurant_food(slug: str, restaurant_id) -> list[FoodVO]:
+def load_restaurant_food(slug: str, restaurant_id):
     print("loading food for /r slug={}".format(slug))
 
     url = "https://eda.yandex.ru/api/v2/menu/retrieve/{}".format(slug)
@@ -28,7 +28,7 @@ def load_restaurant_food(slug: str, restaurant_id) -> list[FoodVO]:
     return result
 
 
-def load_retail_food(category_ids: list[int], slug) -> list[FoodVO]:
+def load_retail_food(category_ids: list[int], slug):
     print("loading food for /retail slug={}".format(slug))
 
     result = []
@@ -67,7 +67,7 @@ def load_retail_food(category_ids: list[int], slug) -> list[FoodVO]:
         return result
 
 
-def load_retail_info(slug) -> RestaurantVO:
+def load_retail_info(slug):
     rs = requests.get("https://eda.yandex.ru/api/v2/catalog/{}".format(slug))
     json = rs.json()
 

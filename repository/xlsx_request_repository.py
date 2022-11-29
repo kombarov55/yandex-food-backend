@@ -6,7 +6,7 @@ from config import database
 from model.xlsx_request import XlsxRequestVO, XlsxRequestStatus
 
 
-def create(session: Session, food_name: str) -> XlsxRequestVO:
+def create(session: Session, food_name: str):
     vo = XlsxRequestVO(
         status=XlsxRequestStatus.not_started,
         start_date=datetime.now(),
@@ -18,7 +18,7 @@ def create(session: Session, food_name: str) -> XlsxRequestVO:
     return vo
 
 
-def find_not_started(session: Session) -> list[XlsxRequestVO]:
+def find_not_started(session: Session):
     return session.query(XlsxRequestVO).filter(XlsxRequestVO.status == XlsxRequestStatus.not_started).all()
 
 
@@ -26,7 +26,7 @@ def get_all(session: Session):
     return session.query(XlsxRequestVO).all()
 
 
-def update(session: Session, vo: XlsxRequestVO) -> XlsxRequestVO:
+def update(session: Session, vo: XlsxRequestVO):
     vo_from_db = session.get(XlsxRequestVO, vo.id)
     vo_from_db.status = vo.status
     vo_from_db.end_date = vo.end_date

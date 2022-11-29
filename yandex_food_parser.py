@@ -104,7 +104,7 @@ def parse_shop(session, page, slug):
     food_repository.save_all(session, food_list)
 
 
-def get_retail_category_ids(page) -> list[int]:
+def get_retail_category_ids(page):
     a_els = page.locator("a.UiKitDesktopShopMenuItem_menuLink")
     result = []
     for i in range(0, a_els.count()):
