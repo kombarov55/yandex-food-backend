@@ -1,9 +1,8 @@
 import uvicorn
 from fastapi import FastAPI, Response
-from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
-import yandex_food_parser
 from config import database
 from repository import xlsx_request_repository
 
