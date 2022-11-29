@@ -184,4 +184,8 @@ def main():
             process_xlsx(session, xlsx_request_vo)
         time.sleep(10)
 
+
+if __name__ == "__main__":
+    main()
+
 # main()
