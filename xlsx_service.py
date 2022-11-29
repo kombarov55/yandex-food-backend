@@ -7,7 +7,7 @@ from xlsxwriter.worksheet import Worksheet
 from model.food import FoodVO
 
 
-def to_csv(xs: list[FoodVO], path: str):
+def to_csv(xs: list, path: str):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
 

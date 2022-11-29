@@ -9,7 +9,7 @@ def save(session: Session, vo: FoodVO):
     session.commit()
 
 
-def save_all(session: Session, xs: list[FoodVO]):
+def save_all(session: Session, xs: list):
     for x in xs:
         if not session.query(exists().where(FoodVO.id == x.id)).scalar():
             session.add(x)
