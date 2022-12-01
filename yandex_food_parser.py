@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, Page
 from sqlalchemy.orm import Session
 
 import api_service
+import screenshot_util
 import solve_captcha
 import xlsx_service
 from config import database, app_config
@@ -177,13 +178,12 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
             print("captcha page. solving...")
             solve_captcha.run(page)
 
+        screenshot_util.screenshot(page, "after-captcha")
         set_location(page)
-        print("location set")
-        page.screenshot(path="./screenshots/set-location.png")
+        screenshot_util.screenshot(page, "location-set")
 
         search(page, xlsx_request_vo.food_name)
-        print("typed search")
-        page.screenshot(path="./screenshots/search.png")
+        screenshot_util.screenshot(page, "search-typed")
 
         print("parsing shops")
         parse_all_shops(page, session)
