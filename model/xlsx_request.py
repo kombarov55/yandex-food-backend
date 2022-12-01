@@ -8,7 +8,8 @@ from config import database
 class XlsxRequestStatus:
     not_started = "not_started"
     started = "started"
-    completed = "completed"
+    completed = "completed",
+    failed = "failed"
 
 
 class XlsxRequestVO(database.base):

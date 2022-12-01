@@ -209,7 +209,11 @@ def main():
         xs = xlsx_request_repository.find_not_started(session)
         print("found {} requests".format(len(xs)))
         for xlsx_request_vo in xs:
-            process_xlsx(session, xlsx_request_vo)
+            try:
+                process_xlsx(session, xlsx_request_vo)
+            except:
+                xlsx_request_vo.status = XlsxRequestStatus.failed
+                xlsx_request_repository.update(session, xlsx_request_vo)
         time.sleep(1)
 
 
