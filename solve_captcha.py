@@ -25,9 +25,9 @@ def run(page: Page):
         page.locator("input.Textinput-Control").type(text, delay=100)
         print("typed {}".format(text))
 
-        button = page.locator("button.CaptchaButton").nth(2)
+        button = page.locator("(//button[@type='submit'])[1]")
         button.click()
-        print("clicked at {}".format(button.inner_html()))
+        print("clicked at ОТПРАВИТЬ")
 
         time.sleep(3)
 
