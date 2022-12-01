@@ -7,9 +7,9 @@ from playwright.sync_api import sync_playwright, Page
 from sqlalchemy.orm import Session
 
 import api_service
-import playwright_util
+import solve_captcha
 import xlsx_service
-from config import database
+from config import database, app_config
 from model.restaurant import RestaurantVO
 from model.xlsx_request import XlsxRequestVO, XlsxRequestStatus
 from repository import restaurant_repository, food_repository, xlsx_request_repository
@@ -41,8 +41,13 @@ def search(page, food_name):
 
 def parse_all_shops(page, session):
     page.wait_for_load_state(state="networkidle")
+
+    print("starting scrolling to bottom")
     scroll_slowly_to_bottom(page)
+    print("end scrolling to bottom")
+
     hrefs = get_hrefs(page)
+    print("parsed hrefs: {}".format(hrefs))
     for href in hrefs:
         slug = get_query_param(href, "placeSlug")
         is_retail = href.startswith("/retail")
@@ -50,8 +55,10 @@ def parse_all_shops(page, session):
         page.wait_for_load_state(state="networkidle")
 
         if not is_retail:
+            print("parsing restaurant slug={}".format(slug))
             parse_restaurant(page, session, slug)
         else:
+            print("parsing shop slug={}".format(slug))
             parse_shop(session, page, slug)
 
 
@@ -96,6 +103,7 @@ def parse_restaurant(page, session, slug):
     restaurant_repository.save(session, vo)
     food_list = api_service.load_restaurant_food(slug, slug)
     food_repository.save_all(session, food_list)
+    print("saved {} items for restaurant_name={} slug={}".format(len(food_list), restaurant_name, slug))
 
 
 def parse_shop(session, page, slug):
@@ -104,6 +112,7 @@ def parse_shop(session, page, slug):
     category_ids = get_retail_category_ids(page)
     food_list = api_service.load_retail_food(category_ids, slug)
     food_repository.save_all(session, food_list)
+    print("parsed {} items for shop_name={} slug={}".format(len(food_list), vo.name, vo.slug))
 
 
 def get_retail_category_ids(page):
@@ -155,18 +164,28 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
         xlsx_request_vo.start_date = datetime.now()
         xlsx_request_repository.update(session, xlsx_request_vo)
         print("processing xlsx request: food_name={} start_date={}".format(xlsx_request_vo.food_name,
-                                                                           xlsx_request_vo.start_date))
-
-        browser = p.chromium.launch()
+                                                                         xlsx_request_vo.start_date))
+        # 45.11.22.118:2227:user61433:8421d9
+        # 45.85.64.130:2227:user61433:8421d9
+        browser = p.chromium.launch(headless=app_config.headless)
         page = browser.new_page()
-        page.screenshot(path="./screenshots/new-page.png")
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
+        print("goto result={}".format(page.url))
         page.screenshot(path="./screenshots/goto.png")
-        print(page.url)
+
+        if page.url.split("/")[3].startswith("showcaptcha"):
+            print("captcha page. solving...")
+            solve_captcha.run(page)
+
         set_location(page)
+        print("location set")
         page.screenshot(path="./screenshots/set-location.png")
+
         search(page, xlsx_request_vo.food_name)
+        print("typed search")
         page.screenshot(path="./screenshots/search.png")
+
+        print("parsing shops")
         parse_all_shops(page, session)
 
         xs = food_repository.get_all(session)
@@ -193,11 +212,15 @@ def main():
         time.sleep(10)
 
 
-if __name__ == "__main__":
+def test_run():
     database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
     vo = XlsxRequestVO(food_name="тоблерон")
     session.add(vo)
     session.commit()
     process_xlsx(session, vo)
+
+
+if __name__ == "__main__":
+    test_run()
     # main()

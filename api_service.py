@@ -43,7 +43,7 @@ def load_retail_food(category_ids: list, slug):
             for category in categories:
                 name = category["name"]
                 items = category["items"]
-                print("received {} items for category {}".format(len(items), name))
+                # print("received {} items for category {}".format(len(items), name))
 
                 if len(items) != 0:
                     for item in items:

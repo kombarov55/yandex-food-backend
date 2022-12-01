@@ -10,6 +10,8 @@ fastapi = "*"
 sqlalchemy = "*"
 xlsxwriter = "*"
 uvicorn = "*"
+pillow = "*"
+2captcha-python = "*"
 
 [dev-packages]
 
