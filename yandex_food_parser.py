@@ -1,5 +1,6 @@
 import time
 import urllib
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -40,20 +41,26 @@ def search(page, food_name):
     page.wait_for_selector("//h1[contains(text(),'Найден')]")
 
 
-def parse_all_shops(page, session):
+def parse_all_shops(page, session, vo):
     page.wait_for_load_state(state="networkidle")
 
     print("starting scrolling to bottom")
+    xlsx_request_repository.set_what_is_doing(session, vo, "Скролим вниз, до конца страницы")
     scroll_slowly_to_bottom(page)
     print("end scrolling to bottom")
 
+    xlsx_request_repository.set_what_is_doing(session, vo, "Получаем все ссылки на магазины")
     hrefs = get_hrefs(page)
     print("parsed hrefs: {}".format(hrefs))
-    for href in hrefs:
+
+    for i in range(0, len(hrefs)):
+        href = hrefs[i]
         slug = get_query_param(href, "placeSlug")
         is_retail = href.startswith("/retail")
         page.goto("https://eda.yandex.ru/{}".format(href))
         page.wait_for_load_state(state="networkidle")
+
+        xlsx_request_repository.set_what_is_doing(session, vo, "Парсим {} (прогресс: {}/{})".format(slug, i, len(hrefs)))
 
         if not is_retail:
             print("parsing restaurant slug={}".format(slug))
@@ -159,34 +166,35 @@ def scroll_slowly_to_bottom(page):
             break
 
 
-def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
+def process_xlsx(session: Session, vo: XlsxRequestVO):
     with sync_playwright() as p:
-        xlsx_request_vo.status = XlsxRequestStatus.started
-        xlsx_request_vo.start_date = datetime.now()
-        xlsx_request_repository.update(session, xlsx_request_vo)
-        print("processing xlsx request: food_name={} start_date={}".format(xlsx_request_vo.food_name,
-                                                                         xlsx_request_vo.start_date))
-        # 45.11.22.118:2227:user61433:8421d9
-        # 45.85.64.130:2227:user61433:8421d9
+        vo.status = XlsxRequestStatus.started
+        vo.start_date = datetime.now()
+        xlsx_request_repository.update(session, vo)
+
+        print("processing xlsx request: food_name={} start_date={}".format(vo.food_name,
+                                                                           vo.start_date))
         browser = p.chromium.launch(headless=app_config.headless)
         page = browser.new_page()
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
         print("goto result={}".format(page.url))
-        page.screenshot(path="./screenshots/goto.png")
+        xlsx_request_repository.set_what_is_doing(session, vo, "Заходим на страницу")
 
         if page.url.split("/")[3].startswith("showcaptcha"):
             print("captcha page. solving...")
+            xlsx_request_repository.set_what_is_doing(session, vo, "Решаем каптчу")
             solve_captcha.run(page)
 
-        screenshot_util.screenshot(page, "after-captcha")
+        xlsx_request_repository.set_what_is_doing(session, vo, "Выставляем геолокацию на Москву")
         set_location(page)
-        screenshot_util.screenshot(page, "location-set")
 
-        search(page, xlsx_request_vo.food_name)
-        screenshot_util.screenshot(page, "search-typed")
+        xlsx_request_repository.set_what_is_doing(session, vo, "Вбиваем поисковый запрос")
+        search(page, vo.food_name)
 
         print("parsing shops")
-        parse_all_shops(page, session)
+        parse_all_shops(page, session, vo)
+
+        xlsx_request_repository.set_what_is_doing(session, vo, "Формируем excel отчет")
 
         food_list = food_repository.get_all(session)
         restaurant_list = restaurant_repository.find_all(session)
@@ -194,27 +202,36 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
         path = "./reports/{}".format(filename)
         xlsx_service.to_csv(restaurant_list, food_list, path)
 
-        xlsx_request_vo.status = XlsxRequestStatus.completed
-        xlsx_request_vo.filename = filename
-        xlsx_request_vo.end_date = datetime.now()
-        xlsx_request_repository.update(session, xlsx_request_vo)
+        vo.status = XlsxRequestStatus.completed
+        vo.filename = filename
+        vo.end_date = datetime.now()
+        xlsx_request_repository.update(session, vo)
+        xlsx_request_repository.set_what_is_doing(session, vo, "Завершено")
         print("completed")
 
 
 def main():
-    database.base.metadata.create_all(bind=database.engine)
-    session = database.session_local()
+    with ThreadPoolExecutor(max_workers=app_config.max_workers) as executor:
+        database.base.metadata.create_all(bind=database.engine)
+        session = database.session_local()
 
-    while True:
-        xs = xlsx_request_repository.find_not_started(session)
-        print("found {} requests".format(len(xs)))
-        for xlsx_request_vo in xs:
-            try:
-                process_xlsx(session, xlsx_request_vo)
-            except:
-                xlsx_request_vo.status = XlsxRequestStatus.failed
-                xlsx_request_repository.update(session, xlsx_request_vo)
-        time.sleep(1)
+        while True:
+            xs = xlsx_request_repository.find_not_started(session)
+            if len(xs) != 0:
+                print("found {} requests".format(len(xs)))
+            for xlsx_request_vo in xs:
+                executor.submit(process_xlsx_task, xlsx_request_vo)
+            time.sleep(1)
+
+
+def process_xlsx_task(xlsx_request_vo: XlsxRequestVO):
+    session = database.session_local()
+    try:
+        process_xlsx(session, xlsx_request_vo)
+    except Exception as e:
+        print(str(e))
+        xlsx_request_vo.status = XlsxRequestStatus.failed
+        xlsx_request_repository.update(session, xlsx_request_vo)
 
 
 def test_run():

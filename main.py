@@ -34,7 +34,7 @@ async def get_all_xlsx_requests(response: Response):
     response.headers["allow-credentials"] = "true"
     response.headers["allow-methods"] = "*"
     response.headers["allow-headers"] = "*"
-    return xlsx_request_repository.get_all(session)
+    return xlsx_request_repository.get_all(database.session_local())
 
 
 app.mount("/static", StaticFiles(directory="reports"), name="static")
