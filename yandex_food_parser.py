@@ -31,6 +31,7 @@ def set_location(page: Page):
     input_locator = page.locator("input.AppAddressInput_addressInput")
     input_locator.type("Москва, Красная площадь 3")
     page.click("div.react-autosuggest__suggestions-container")
+    page.keyboard.press("Enter")
     page.click("button.DesktopLocationModal_ok")
     page.wait_for_selector(
         "//span[@class='DesktopAddressButton_addressStreet' and contains(text(), 'Красная площадь')]")

@@ -35,7 +35,6 @@ def run(page: Page):
             print("captcha solved")
             break
         print("solving another captcha")
-    page.pause()
 
 
 def download_img(src):
