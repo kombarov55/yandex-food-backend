@@ -157,12 +157,12 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
         print("processing xlsx request: food_name={} start_date={}".format(xlsx_request_vo.food_name,
                                                                            xlsx_request_vo.start_date))
 
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch()
         page = browser.new_page()
-        playwright_util.load_cookies(page, "./cookies.json")
         page.screenshot(path="./screenshots/new-page.png")
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
         page.screenshot(path="./screenshots/goto.png")
+        print(page.url)
         set_location(page)
         page.screenshot(path="./screenshots/set-location.png")
         search(page, xlsx_request_vo.food_name)
