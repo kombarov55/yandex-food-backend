@@ -209,7 +209,7 @@ def main():
         print("found {} requests".format(len(xs)))
         for xlsx_request_vo in xs:
             process_xlsx(session, xlsx_request_vo)
-        time.sleep(10)
+        time.sleep(1)
 
 
 def test_run():
@@ -222,5 +222,5 @@ def test_run():
 
 
 if __name__ == "__main__":
-    test_run()
-    # main()
+    # test_run()
+    main()
