@@ -158,9 +158,13 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
 
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
+        page.screenshot(path="./screenshots/new-page.png")
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
+        page.screenshot(path="./screenshots/goto.png")
         set_location(page)
+        page.screenshot(path="./screenshots/set-location.png")
         search(page, xlsx_request_vo.food_name)
+        page.screenshot(path="./screenshots/search.png")
         parse_all_shops(page, session)
 
         xs = food_repository.get_all(session)
@@ -188,6 +192,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
-# main()
+    database.base.metadata.create_all(bind=database.engine)
+    session = database.session_local()
+    vo = XlsxRequestVO(food_name="тоблерон")
+    session.add(vo)
+    session.commit()
+    process_xlsx(session, vo)
+    # main()
