@@ -2,9 +2,10 @@ import requests
 
 from model.food import FoodVO
 from model.restaurant import RestaurantVO
+from model.xlsx_request import XlsxRequestVO
 
 
-def load_restaurant_food(slug: str, restaurant_id):
+def load_restaurant_food(slug: str, restaurant_id, xlsx_request_vo: XlsxRequestVO):
     print("loading food for /r slug={}".format(slug))
 
     url = "https://eda.yandex.ru/api/v2/menu/retrieve/{}".format(slug)
@@ -17,6 +18,7 @@ def load_restaurant_food(slug: str, restaurant_id):
         items = category["items"]
         for item in items:
             result.append(FoodVO(
+                xlsx_request_id=xlsx_request_vo.id,
                 name=get_field(item, "name"),
                 description=get_field(item, "description"),
                 price=get_field(item, "price"),
@@ -28,7 +30,7 @@ def load_restaurant_food(slug: str, restaurant_id):
     return result
 
 
-def load_retail_food(category_ids: list, slug):
+def load_retail_food(category_ids: list, slug, xlsx_request_vo: XlsxRequestVO):
     print("loading food for /retail slug={}".format(slug))
 
     result = []
@@ -48,6 +50,7 @@ def load_retail_food(category_ids: list, slug):
                 if len(items) != 0:
                     for item in items:
                         vo = FoodVO(
+                            xlsx_request_id=xlsx_request_vo.id,
                             restaurant_id=slug,
                             name=get_field(item, "name"),
                             description=get_field(item, "description"),

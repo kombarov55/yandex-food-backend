@@ -7,7 +7,8 @@ class FoodVO(database.base):
     __tablename__ = "food"
 
     id = Column(Integer, primary_key=True, index=True)
-    restaurant_id = Column(Integer)
+    restaurant_id = Column(Integer, index=True)
+    xlsx_request_id = Column(Integer, index=True)
     name = Column(String)
     description = Column(String)
     src = Column(String)

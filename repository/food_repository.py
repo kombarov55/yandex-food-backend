@@ -16,6 +16,10 @@ def save_all(session: Session, xs: list):
     session.commit()
 
 
-def get_all(session: Session):
-    return session.query(FoodVO).all()
+def get_all(session: Session, xlsx_request_id: int):
+    return session.query(FoodVO).filter(FoodVO.xlsx_request_id == xlsx_request_id).all()
 
+
+def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
+    session.query(FoodVO).filter(FoodVO.xlsx_request_id == xlsx_request_id).delete()
+    session.commit()
