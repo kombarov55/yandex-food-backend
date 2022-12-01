@@ -8,3 +8,7 @@ def save(session: Session, restaurant: RestaurantVO):
     session.commit()
     session.refresh(restaurant)
     return restaurant
+
+
+def find_all(session: Session):
+    return session.query(RestaurantVO).all()

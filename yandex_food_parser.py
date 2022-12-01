@@ -188,10 +188,11 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
         print("parsing shops")
         parse_all_shops(page, session)
 
-        xs = food_repository.get_all(session)
+        food_list = food_repository.get_all(session)
+        restaurant_list = restaurant_repository.find_all(session)
         filename = "{}.xlsx".format(str(time.time()))
         path = "./reports/{}".format(filename)
-        xlsx_service.to_csv(xs, path)
+        xlsx_service.to_csv(restaurant_list, food_list, path)
 
         xlsx_request_vo.status = XlsxRequestStatus.completed
         xlsx_request_vo.filename = filename
@@ -221,6 +222,18 @@ def test_run():
     process_xlsx(session, vo)
 
 
+def test_xlsx():
+    database.base.metadata.create_all(bind=database.engine)
+    session = database.session_local()
+
+    food_list = food_repository.get_all(session)
+    restaurant_list = restaurant_repository.find_all(session)
+    filename = "{}.xlsx".format(str(time.time()))
+    path = "./reports/{}".format(filename)
+    xlsx_service.to_csv(restaurant_list, food_list, path)
+
+
 if __name__ == "__main__":
+    # test_xlsx()
     # test_run()
     main()
