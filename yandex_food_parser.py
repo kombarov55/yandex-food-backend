@@ -7,6 +7,7 @@ from playwright.sync_api import sync_playwright, Page
 from sqlalchemy.orm import Session
 
 import api_service
+import playwright_util
 import xlsx_service
 from config import database
 from model.restaurant import RestaurantVO
@@ -158,6 +159,7 @@ def process_xlsx(session: Session, xlsx_request_vo: XlsxRequestVO):
 
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
+        playwright_util.load_cookies(page, "./cookies.json")
         page.screenshot(path="./screenshots/new-page.png")
         page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
         page.screenshot(path="./screenshots/goto.png")
