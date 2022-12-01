@@ -25,8 +25,9 @@ def run(page: Page):
         page.locator("input.Textinput-Control").type(text, delay=100)
         print("typed {}".format(text))
 
-        page.click("button.CaptchaButton")
-        print("clicked at ОТПРАВИТЬ")
+        button = page.locator("button.CaptchaButton").nth(2)
+        button.click()
+        print("clicked at {}".format(button.inner_html()))
 
         time.sleep(3)
 
@@ -55,7 +56,7 @@ def request_solving():
 def scratch_run():
     with sync_playwright() as p:
         page = p.chromium.launch(headless=False).new_page()
-        page.goto("https://eda.yandex.ru/showcaptcha?cc=1&mt=2222D2F3BAFCBB2868FA600DD8A04014A76A56B6EAFC893200545E209F266858E107&retpath=aHR0cHM6Ly9lZGEueWFuZGV4LnJ1L21vc2Nvdz9zaGlwcGluZ1R5cGU9ZGVsaXZlcnk%2C_fd0593559cbccee517013bb08a73d4e7&t=2/1669864357/e42cd551726da3cc57dd84cfbfd0b7e7&u=3fd44ba6-367ad839-49e24c60-d327ca0&s=c05c58683bb672c01eef1e6937bfe4e0")
+        page.goto("https://eda.yandex.ru/showcaptcha?cc=1&mt=8352A9C8F47CF4647FC70ACC32EC3D3B2548F41F091E639C13DE59A3A59837A09A06&retpath=aHR0cHM6Ly9lZGEueWFuZGV4LnJ1L21vc2Nvdz9zaGlwcGluZ1R5cGU9ZGVsaXZlcnk%2C_fd0593559cbccee517013bb08a73d4e7&t=2/1669868919/f5b63d6a67e361320af8c8093a8742c8&u=2cf4f937-a709f913-38f2a278-638bb4ab&s=467c90359f6bf2ce0bfa743ddfebff82")
         run(page)
 
 
