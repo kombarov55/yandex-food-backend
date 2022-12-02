@@ -1,10 +1,21 @@
-from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, RestaurantDto, HighlightedRestaurantDto
+from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, RestaurantDto, HighlightedRestaurantDto, \
+    SearchFoodResponseItem
 
 
 def find(food_name: str):
     return SearchFoodResponse(
+        by_restaurant=search_food_response_item(),
+        by_shop=search_food_response_item()
+    )
+
+
+def search_food_response_item():
+    return SearchFoodResponseItem(
         lowest_price_food_list=[
-            FoodDto(name="Том ям с креветками",src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",price="680p",restaurant_name="She",address="Большая Никитская улица, 15с1",description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4"),
+            FoodDto(name="Том ям с креветками",
+                    src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",
+                    price="680p", restaurant_name="She", address="Большая Никитская улица, 15с1",
+                    description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4"),
             FoodDto(name="Том ям с креветками",
                     src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",
                     price="680p",
@@ -58,12 +69,14 @@ def find(food_name: str):
         ],
         best_highlighted_restaurant=HighlightedRestaurantDto(
             name="Лучший ресторан города",
+            src="https://eda.yandex/images/3724421/7ccfd22d1f539f88212eb1b2f219f6eb-100x100.jpg",
             address="Москва ул. Ленина 5",
             rating=4.9,
             rating_count=100000
         ),
         worst_highlighted_restaurant=HighlightedRestaurantDto(
             name="Худшая дыра города",
+            src="https://eda.yandex/images/3513074/b6e1ad87e2de180003818a23c25c57f1-100x100.jpg",
             address="Москва ул. Вавилова д. 3",
             rating=1.3,
             rating_count=666666
@@ -71,15 +84,33 @@ def find(food_name: str):
         best_highlighted_shop=HighlightedRestaurantDto(
             name="Пятерочка",
             address="Москва ул. Ленина 5",
+            src="https://eda.yandex/images/3513074/b6e1ad87e2de180003818a23c25c57f1-100x100.jpg",
             rating=4.9,
             rating_count=100000
         ),
         worst_highlighted_shop=HighlightedRestaurantDto(
             name="Продукты 'У Ашота'",
+            src="https://eda.yandex/images/3513074/b6e1ad87e2de180003818a23c25c57f1-100x100.jpg",
             address="Москва ул. Вавилова д. 3",
             rating=1.3,
             rating_count=666666
-        )
+        ),
+        best_choice_food_list=[
+            FoodDto(name="Том ям с креветками",
+                    src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",
+                    price="680p", restaurant_name="She", address="Большая Никитская улица, 15с1",
+                    description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4"),
+            FoodDto(name="Том ям с креветками",
+                    src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",
+                    price="680p",
+                    restaurant_name="Grape wine & kitchen",
+                    address="Большая Никитская улица, 15с1",
+                    description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4"),
+            FoodDto(name="Том ям с креветками",
+                    src="https://eda.yandex/images/2794391/9604ef0615a2a914cb22a1ac9f47b4e4-400x400nocrop.jpeg",
+                    price="680p", restaurant_name="Grape wine & kitchen", address="Большая Никитская улица, 15с1",
+                    description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4")
+        ]
     )
 
 

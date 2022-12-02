@@ -27,12 +27,13 @@ class RestaurantDto(pydantic.BaseModel):
 
 class HighlightedRestaurantDto(pydantic.BaseModel):
     name: str
+    src: str
     address: str
     rating: float
     rating_count: int
 
 
-class SearchFoodResponse(pydantic.BaseModel):
+class SearchFoodResponseItem(pydantic.BaseModel):
     lowest_price_food_list: list
     highest_price_food_list: list
     biggest_weight_food_list: list
@@ -43,6 +44,9 @@ class SearchFoodResponse(pydantic.BaseModel):
     worst_highlighted_restaurant: HighlightedRestaurantDto
     best_highlighted_shop: HighlightedRestaurantDto
     worst_highlighted_shop: HighlightedRestaurantDto
+    best_choice_food_list: list
 
 
-
+class SearchFoodResponse(pydantic.BaseModel):
+    by_restaurant: SearchFoodResponseItem
+    by_shop: SearchFoodResponseItem
