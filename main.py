@@ -78,6 +78,9 @@ def is_prod():
 
 if __name__ == "__main__":
     if is_prod():
+        print("######################")
+        print("starting in prod mode")
+        print("######################")
         uvicorn.run(
             app, port=8000, host='0.0.0.0',
             ssl_keyfile="/etc/letsencrypt/live/novemis.ru/privkey.pem",
