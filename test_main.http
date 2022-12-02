@@ -34,3 +34,21 @@ POST https://eda.yandex.ru/api/v2/menu/goods
 Content-Type: application/json
 
 {"slug":"vkusvill_marosejka_2_15s1_rmxdp","category":1033,"filters":{},"maxDepth":100}
+
+###
+POST localhost:8000/account
+Content-Type: application/json
+
+{
+  "email": "kombarov55@gmail.com",
+  "password": "123123123"
+}
+
+###
+POST localhost:8000/account/login
+Content-Type: application/json
+
+{
+  "email": "kombarov55@gmail.com",
+  "password": "123123123"
+}
