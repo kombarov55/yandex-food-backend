@@ -1,7 +1,7 @@
 import pydantic
 
 
-class FoodDto(pydantic.BaseModel):
+class FoodDto:
     name: str
     src: str
     price: str
@@ -11,16 +11,16 @@ class FoodDto(pydantic.BaseModel):
     weight: str = "449г"
 
 
-class FoodChartDto(pydantic.BaseModel):
+class FoodChartDto:
     shop_name: str
     price: int
 
 
-class SearchFoodResponse(pydantic.BaseModel):
-    lowest_price_food_list: list[FoodDto]
-    highest_price_food_list: list[FoodDto]
-    biggest_weight_food_list: list[FoodDto]
+class SearchFoodResponse:
+    lowest_price_food_list: list
+    highest_price_food_list: list
+    biggest_weight_food_list: list
     avg_price: int
-    chart_data: list[FoodChartDto]
+    chart_data: list
 
 
