@@ -1,4 +1,4 @@
-from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto
+from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, RestaurantDto, HighlightedRestaurantDto
 
 
 def find(food_name: str):
@@ -45,8 +45,41 @@ def find(food_name: str):
                     description="Классический пряный острый суп том ям с креветками, грибами шиитаке, помидорами черри, кинзой и кокосовым молоком. Бульон том ям: куриный бульон, свежая морковь, лук репчатый, корень галангала, лимонник, перец чили, кинза, корень имбиря, листья лайма.На 100 граммов: К 95, Б 6, Ж 6, У 4")
         ],
         avg_price=666,
-        chart_data=generate_chart_data()
-
+        chart_data=generate_chart_data(),
+        restaurants=[
+            RestaurantDto(
+                name="Right Brewery",
+                address="Большая набережная вл. Ленина д. 14",
+                longitude=55.744589,
+                latitude=37.613065,
+                rating=5,
+                rating_count=10
+            )
+        ],
+        best_highlighted_restaurant=HighlightedRestaurantDto(
+            name="Лучший ресторан города",
+            address="Москва ул. Ленина 5",
+            rating=4.9,
+            rating_count=100000
+        ),
+        worst_highlighted_restaurant=HighlightedRestaurantDto(
+            name="Худшая дыра города",
+            address="Москва ул. Вавилова д. 3",
+            rating=1.3,
+            rating_count=666666
+        ),
+        best_highlighted_shop=HighlightedRestaurantDto(
+            name="Пятерочка",
+            address="Москва ул. Ленина 5",
+            rating=4.9,
+            rating_count=100000
+        ),
+        worst_highlighted_shop=HighlightedRestaurantDto(
+            name="Продукты 'У Ашота'",
+            address="Москва ул. Вавилова д. 3",
+            rating=1.3,
+            rating_count=666666
+        )
     )
 
 
