@@ -64,12 +64,16 @@ def parse_all_shops(page, session, vo: XlsxRequestVO):
         xlsx_request_repository.set_what_is_doing(session, vo,
                                                   "Парсим {} (прогресс: {}/{})".format(slug, i, len(hrefs)))
 
-        if not is_retail:
-            print("parsing restaurant slug={}".format(slug))
-            parse_restaurant(page, session, slug, vo)
-        else:
-            print("parsing shop slug={}".format(slug))
-            parse_shop(session, page, slug, vo)
+        try:
+            if not is_retail:
+                print("parsing restaurant slug={}".format(slug))
+                parse_restaurant(page, session, slug, vo)
+            else:
+                print("parsing shop slug={}".format(slug))
+                parse_shop(session, page, slug, vo)
+        except Exception as e:
+            print(str(e))
+            print("failed to parse {}".format(href))
 
 
 def parse_restaurant(page, session, slug, xlsx_request_vo: XlsxRequestVO):
