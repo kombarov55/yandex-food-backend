@@ -69,11 +69,12 @@ app.add_middleware(
 
 
 def is_prod():
-    if len(sys.argv) == 0:
-        return False
-    if sys.argv[0] == "prod":
-        return True
-    return False
+    # if len(sys.argv) == 0:
+    #     return False
+    # if sys.argv[0] == "prod":
+    #     return True
+    # return False
+    return True
 
 
 if __name__ == "__main__":
