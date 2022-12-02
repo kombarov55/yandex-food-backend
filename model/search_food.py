@@ -8,6 +8,7 @@ class FoodDto(pydantic.BaseModel):
     restaurant_name: str
     address: str
     description: str
+    weight: str = "449г"
 
 
 class FoodChartDto(pydantic.BaseModel):
