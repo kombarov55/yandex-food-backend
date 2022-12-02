@@ -1,3 +1,5 @@
+import sys
+
 import uvicorn
 from fastapi import FastAPI, Response, Depends
 from sqlalchemy.orm import Session
@@ -66,5 +68,19 @@ app.add_middleware(
 )
 
 
+def is_prod():
+    if len(sys.argv) == 0:
+        return False
+    if sys.argv[0] == "prod":
+        return True
+    return False
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    if is_prod():
+        uvicorn.run(
+            app, port=8000, host='0.0.0.0',
+            ssl_keyfile="/etc/letsencrypt/live/novemis.ru/privkey.pem",
+            ssl_certfile="/etc/letsencrypt/live/novemis.ru/fullchain.pem")
+    else:
+        uvicorn.run(app, host="0.0.0.0", port=8000)
