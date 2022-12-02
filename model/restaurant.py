@@ -17,3 +17,5 @@ class RestaurantVO(database.base):
     address = Column(String)
     longitude = Column(String)
     latitude = Column(String)
+    open_at = Column(String)
+    close_at = Column(String)

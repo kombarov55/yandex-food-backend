@@ -1,5 +1,6 @@
 import time
 import urllib
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from urllib.parse import urlparse
@@ -19,11 +20,15 @@ from repository import restaurant_repository, food_repository, xlsx_request_repo
 
 def set_location(page: Page):
     # page.wait_for_selector("(//h2[@class='DesktopHeaderBlock_headerText DesktopHeaderBlock_headerTextBold'])[1]")
+    print("waiting for page to load")
     page.wait_for_load_state("networkidle")
+    print("OK, setting location")
     location_text = page.locator("span.DesktopAddressButton_address").inner_text()
     if location_text == "Укажите адрес доставки":
+        print("location is not set, clicking")
         page.locator("button.DesktopHeader_addressButton").click()
     else:
+        print("location is already set, changing")
         page.locator("button.DesktopUIButton_root").click()
         page.locator("div.UIPopupList_option").click()
     # page.click("svg.AppAddressInput_closeIcon");
@@ -47,7 +52,7 @@ def parse_all_shops(page, session, vo: XlsxRequestVO):
 
     print("starting scrolling to bottom")
     xlsx_request_repository.set_what_is_doing(session, vo, "Скролим вниз, до конца страницы")
-    scroll_slowly_to_bottom(page)
+    # scroll_slowly_to_bottom(page)
     print("end scrolling to bottom")
 
     xlsx_request_repository.set_what_is_doing(session, vo, "Получаем все ссылки на магазины")
@@ -55,16 +60,15 @@ def parse_all_shops(page, session, vo: XlsxRequestVO):
     print("parsed hrefs: {}".format(hrefs))
 
     for i in range(0, len(hrefs)):
-        href = hrefs[i]
-        slug = get_query_param(href, "placeSlug")
-        is_retail = href.startswith("/retail")
-        page.goto("https://eda.yandex.ru/{}".format(href))
-        page.wait_for_load_state(state="networkidle")
-
-        xlsx_request_repository.set_what_is_doing(session, vo,
-                                                  "Парсим {} (прогресс: {}/{})".format(slug, i, len(hrefs)))
-
         try:
+            href = hrefs[i]
+            slug = get_query_param(href, "placeSlug")
+            is_retail = href.startswith("/retail")
+            page.goto("https://eda.yandex.ru/{}".format(href))
+            page.wait_for_load_state(state="networkidle")
+
+            xlsx_request_repository.set_what_is_doing(session, vo,
+                                                      "Парсим {} (прогресс: {}/{})".format(slug, i, len(hrefs)))
             if not is_retail:
                 print("parsing restaurant slug={}".format(slug))
                 parse_restaurant(page, session, slug, vo)
@@ -105,6 +109,8 @@ def parse_restaurant(page, session, slug, xlsx_request_vo: XlsxRequestVO):
 
     address = page.locator("span.RestaurantPopup_infoAddr").inner_text()
 
+    (open_at, close_at) = get_restaurant_work_time(page)
+
     vo = RestaurantVO(
         xlsx_request_id=xlsx_request_vo.id,
         slug=slug,
@@ -112,13 +118,27 @@ def parse_restaurant(page, session, slug, xlsx_request_vo: XlsxRequestVO):
         rating=rating,
         rating_count=rating_count,
         delivery_time=delivery_time,
-        address=address
+        address=address,
+        open_at=open_at,
+        close_at=close_at
     )
     print(f"{restaurant_name} {rating} {rating_count} {delivery_time} {address}")
     restaurant_repository.save(session, vo)
     food_list = api_service.load_restaurant_food(slug, slug, xlsx_request_vo)
     food_repository.save_all(session, food_list)
     print("saved {} items for restaurant_name={} slug={}".format(len(food_list), restaurant_name, slug))
+
+
+def get_restaurant_work_time(page: Page):
+    elems = page.locator("p.RestaurantPopup_infoBlock")
+    last_elem = elems.nth(elems.count() - 1)
+    text = last_elem.inner_text()
+    words = re.search("с \\d\\d:\\d\\d до \\d\\d:\\d\\d", text).group().split(" ")
+
+    open_at = words[1]
+    close_at = words[3]
+
+    return open_at, close_at
 
 
 def parse_shop(session, page, slug, xlsx_request_vo: XlsxRequestVO):
@@ -175,11 +195,9 @@ def scroll_slowly_to_bottom(page):
             break
 
 
-def process_xlsx(page: Page, session: Session, vo: XlsxRequestVO):
+def parse_data_and_save_to_db(page: Page, session: Session, vo: XlsxRequestVO):
     print("processing xlsx request: food_name={} start_date={}".format(vo.food_name,
                                                                        vo.start_date))
-    # browser = p.chromium.launch(headless=app_config.headless)
-    # page = browser.new_page()
     page.goto("https://eda.yandex.ru/moscow?shippingType=delivery")
     print("goto result={}".format(page.url))
     xlsx_request_repository.set_what_is_doing(session, vo, "Заходим на страницу")
@@ -190,7 +208,7 @@ def process_xlsx(page: Page, session: Session, vo: XlsxRequestVO):
         solve_captcha.run(page)
 
     xlsx_request_repository.set_what_is_doing(session, vo, "Выставляем геолокацию на Москву")
-    set_location(page)
+    # set_location(page)
 
     xlsx_request_repository.set_what_is_doing(session, vo, "Вбиваем поисковый запрос")
     search(page, vo.food_name)
@@ -198,14 +216,16 @@ def process_xlsx(page: Page, session: Session, vo: XlsxRequestVO):
     print("parsing shops")
     parse_all_shops(page, session, vo)
 
-    xlsx_request_repository.set_what_is_doing(session, vo, "Формируем excel отчет")
 
+def create_xlsx(filename: str, session: Session, vo: XlsxRequestVO):
+    xlsx_request_repository.set_what_is_doing(session, vo, "Формируем excel отчет")
     food_list = food_repository.get_all(session, vo.id)
     restaurant_list = restaurant_repository.find_all(session, vo.id)
-    filename = "{}.xlsx".format(str(time.time()))
     path = "./reports/{}".format(filename)
     xlsx_service.to_csv(restaurant_list, food_list, path)
 
+
+def end_request_and_cleanup(filename: str, session: Session, vo: XlsxRequestVO):
     vo.status = XlsxRequestStatus.completed
     vo.filename = filename
     vo.end_date = datetime.now()
@@ -215,6 +235,13 @@ def process_xlsx(page: Page, session: Session, vo: XlsxRequestVO):
     restaurant_repository.delete_by_xlsx_request_id(session, vo.id)
     food_repository.delete_by_xlsx_request_id(session, vo.id)
     print("completed")
+
+
+def process_xlsx(page: Page, session: Session, vo: XlsxRequestVO):
+    parse_data_and_save_to_db(page, session, vo)
+    filename = "{}.xlsx".format(str(time.time()))
+    create_xlsx(filename, session, vo)
+    end_request_and_cleanup(filename, session, vo)
 
 
 def main():
@@ -250,11 +277,11 @@ def process_xlsx_task(xlsx_request_vo: XlsxRequestVO):
 def test_run():
     database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
-    vo = XlsxRequestVO(food_name="тоблерон")
+    vo = XlsxRequestVO(food_name="цезарь")
     session.add(vo)
     session.commit()
     with sync_playwright() as p:
-        page = p.chromium.launch(headless=app_config.headless).new_page()
+        page = p.chromium.launch(headless=False).new_page()
         process_xlsx(page, session, vo)
 
 

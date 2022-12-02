@@ -52,3 +52,7 @@ Content-Type: application/json
   "email": "kombarov55@gmail.com",
   "password": "123123123"
 }
+
+###
+GET https://eda.yandex.ru/api/v2/menu/retrieve/battuta_bistro
+content-type: application/json

@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 from model.xlsx_request import XlsxRequestVO, XlsxRequestStatus
 
 
-def create(session: Session, food_name: str):
+def create(session: Session, food_name: str, is_used_for_site: bool = False):
     vo = XlsxRequestVO(
         status=XlsxRequestStatus.not_started,
         start_date=datetime.now(),
-        food_name=food_name
+        food_name=food_name,
+        is_used_for_site=is_used_for_site
     )
     session.add(vo)
     session.commit()
@@ -40,3 +41,7 @@ def update(session: Session, vo: XlsxRequestVO):
 def set_what_is_doing(session: Session, vo: XlsxRequestVO, s: str):
     vo.what_is_doing = s
     update(session, vo)
+
+
+def should_load_data(session: Session):
+    return session.query(XlsxRequestVO).filter(XlsxRequestVO.is_used_for_site is True).first() is None

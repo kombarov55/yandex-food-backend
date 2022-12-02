@@ -8,12 +8,13 @@ class FoodDto(pydantic.BaseModel):
     restaurant_name: str
     address: str
     description: str
-    weight: str = "449г"
+    weight: str = 449
+    link: str = "https://eda.yandex.ru/retail/vkusvill/product/a4c5012a-703c-4d1b-8be3-c02dc323ab98?placeSlug=vkusvill_marosejka_2_15s1_rmxdp"
 
 
 class FoodChartDto(pydantic.BaseModel):
     shop_name: str
-    price: int
+    price: float
 
 
 class RestaurantDto(pydantic.BaseModel):
@@ -23,6 +24,9 @@ class RestaurantDto(pydantic.BaseModel):
     latitude: float
     rating: float
     rating_count: int
+    open_at: str = "08:00"
+    close_at: str = "23:00"
+    link: str = "https://eda.yandex.ru/retail/vkusvill/product/a4c5012a-703c-4d1b-8be3-c02dc323ab98?placeSlug=vkusvill_marosejka_2_15s1_rmxdp"
 
 
 class HighlightedRestaurantDto(pydantic.BaseModel):
@@ -31,13 +35,14 @@ class HighlightedRestaurantDto(pydantic.BaseModel):
     address: str
     rating: float
     rating_count: int
+    href: str = "https://eda.yandex.ru/retail/vkusvill/product/a4c5012a-703c-4d1b-8be3-c02dc323ab98?placeSlug=vkusvill_marosejka_2_15s1_rmxdp"
 
 
 class SearchFoodResponseItem(pydantic.BaseModel):
     lowest_price_food_list: list
     highest_price_food_list: list
     biggest_weight_food_list: list
-    avg_price: int
+    avg_price: float
     chart_data: list
     restaurants: list
     best_highlighted_restaurant: HighlightedRestaurantDto

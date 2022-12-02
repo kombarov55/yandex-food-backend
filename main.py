@@ -8,7 +8,7 @@ from starlette.staticfiles import StaticFiles
 
 from config import database
 from repository import xlsx_request_repository, account_repository
-from service import restore_pwd_service, search_food_service
+from service import restore_pwd_service, search_food_service, prepare_data_service
 
 app = FastAPI()
 database.base.metadata.create_all(bind=database.engine)
@@ -78,6 +78,8 @@ def is_prod():
 
 
 if __name__ == "__main__":
+    prepare_data_service.run_background()
+
     if is_prod():
         print("######################")
         print("starting in prod mode")

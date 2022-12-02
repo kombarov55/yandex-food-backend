@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 
 from config import database
 
@@ -21,3 +21,4 @@ class XlsxRequestVO(database.base):
     end_date = Column(DateTime)
     filename = Column(String)
     food_name = Column(String)
+    is_used_for_site = Column(Boolean)

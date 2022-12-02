@@ -1,6 +1,6 @@
 import requests
 
-from model.food import FoodVO
+from model.food import FoodVO, PlaceType
 from model.restaurant import RestaurantVO
 from model.xlsx_request import XlsxRequestVO
 
@@ -14,17 +14,20 @@ def load_restaurant_food(slug: str, restaurant_id, xlsx_request_vo: XlsxRequestV
     categories = json["payload"]["categories"]
     result = []
     for category in categories:
-        name = category["name"]
+        category_id = get_field(category, "id")
         items = category["items"]
         for item in items:
             result.append(FoodVO(
                 xlsx_request_id=xlsx_request_vo.id,
                 name=get_field(item, "name"),
                 description=get_field(item, "description"),
-                price=get_field(item, "price"),
-                weight=get_field(item, "weight"),
+                price=int(get_field(item, "price")),
+                weight=parse_weight(item),
                 src=get_nested_field(item, "picture", "uri"),
-                restaurant_id=restaurant_id
+                restaurant_id=restaurant_id,
+                external_id=get_field(item, "id"),
+                category_id=category_id,
+                place_type=PlaceType.restaurant
             ))
     print("slug={} len(result)={}".format(slug, len(result)))
     return result
@@ -54,9 +57,11 @@ def load_retail_food(category_ids: list, slug, xlsx_request_vo: XlsxRequestVO):
                             restaurant_id=slug,
                             name=get_field(item, "name"),
                             description=get_field(item, "description"),
-                            price=get_field(item, "price"),
-                            weight=get_field(item, "weight"),
-                            src=get_nested_field(item, "picture", "url")
+                            price=int(get_field(item, "price")),
+                            weight=parse_weight(item),
+                            src=get_nested_field(item, "picture", "url"),
+                            external_id=get_field(item, "public_id"),
+                            place_type=PlaceType.shop
                         )
                         result.append(vo)
         except:
@@ -93,6 +98,15 @@ def load_retail_info(slug):
         longitude=place["address"]["location"]["longitude"],
         latitude=place["address"]["location"]["latitude"]
     )
+
+
+def parse_weight(item: dict):
+    weight_str = get_field(item, "weight")
+
+    if weight_str.lower().endswith("г") or weight_str.lower().endswith("мл"):
+        return float(weight_str.split(' ')[0].replace(",", "."))
+    if weight_str.lower().endswith("л") or weight_str.lower().endswith("кг"):
+        return float(weight_str.split(' ')[0].replace(",", ".")) * 1000
 
 
 def get_field(item: dict, name: str):

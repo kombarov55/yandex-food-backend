@@ -3,6 +3,10 @@ from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, Restaur
 
 
 def find(food_name: str):
+    return stub_find()
+
+
+def stub_find():
     return SearchFoodResponse(
         by_restaurant=search_food_response_item(),
         by_shop=search_food_response_item()
