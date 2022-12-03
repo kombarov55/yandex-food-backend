@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, func, or_
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql import exists
 
+from config import database
 from model.food import FoodVO, PlaceType
 from model.search_food import FoodChartDto, FoodDto
 from repository import restaurant_repository
@@ -29,44 +30,99 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
 
 
 def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
-    stmt = session.query(FoodVO) \
-        .filter(FoodVO.xlsx_request_id == xlsx_request_id) \
-        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
-        .order_by(FoodVO.price.asc()) \
-        .limit(amount) \
+    with database.engine.connect() as con:
+        sql = "select name, src, price, weight, restaurant_id, external_id " \
+              "from food " \
+              "where xlsx_request_id = 1 " \
+              "and (" \
+              "name like :name || '%' " \
+              "or name like '%' || :name || '%' " \
+              "or name like :lower_name || '%' " \
+              "or name like '%' || :lower_name || '%'" \
+              ") " \
+              "and price is not null " \
+              "order by price asc " \
+              "limit :limit"
 
-    print(stmt)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
 
-    all = stmt.all()
+        food_list = []
+        for row in rows:
+            food_list.append(FoodVO(
+                name=row[0],
+                src=row[1],
+                price=row[2],
+                weight=row[3],
+                restaurant_id=row[4],
+                external_id=row[5]
+            ))
+        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
-    restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
-
-    return list(map(lambda x: convert_to_dto(x, restaurant_list), all))
+        return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
 def search_highest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
-    all = session.query(FoodVO) \
-        .filter(FoodVO.xlsx_request_id == xlsx_request_id) \
-        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
-        .order_by(FoodVO.price.desc()) \
-        .limit(amount) \
-        .all()
+    with database.engine.connect() as con:
+        sql = "select name, src, price, weight, restaurant_id, external_id " \
+              "from food " \
+              "where xlsx_request_id = 1 " \
+              "and (" \
+              "name like :name || '%' " \
+              "or name like '%' || :name || '%' " \
+              "or name like :lower_name || '%' " \
+              "or name like '%' || :lower_name || '%'" \
+              ") " \
+              "and price is not null " \
+              "order by price desc " \
+              "limit :limit"
 
-    restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
 
-    return list(map(lambda x: convert_to_dto(x, restaurant_list), all))
+        food_list = []
+        for row in rows:
+            food_list.append(FoodVO(
+                name=row[0],
+                src=row[1],
+                price=row[2],
+                weight=row[3],
+                restaurant_id=row[4],
+                external_id=row[5]
+            ))
+        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
+
+        return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
 def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
-    all = session.query(FoodVO)\
-        .filter(FoodVO.xlsx_request_id == xlsx_request_id)\
-        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
-        .filter(FoodVO.weight is not None)\
-        .order_by(FoodVO.weight.desc()).limit(amount).all()
+    with database.engine.connect() as con:
+        sql = "select name, src, price, weight, restaurant_id, external_id " \
+              "from food " \
+              "where xlsx_request_id = 1 " \
+              "and (" \
+              "name like :name || '%' " \
+              "or name like '%' || :name || '%' " \
+              "or name like :lower_name || '%' " \
+              "or name like '%' || :lower_name || '%'" \
+              ") " \
+              "and weight is not null " \
+              "order by weight desc " \
+              "limit :limit"
 
-    restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
 
-    return list(map(lambda x: convert_to_dto(x, restaurant_list), all))
+        food_list = []
+        for row in rows:
+            food_list.append(FoodVO(
+                name=row[0],
+                src=row[1],
+                price=row[2],
+                weight=row[3],
+                restaurant_id=row[4],
+                external_id=row[5]
+            ))
+        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
+
+        return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
 def search_avg_price(session: Session, food_name: str, xlsx_request_id: int):

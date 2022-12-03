@@ -11,7 +11,7 @@ def find(food_name: str):
     return SearchFoodResponse(
         by_restaurant=SearchFoodResponseItem(
             lowest_price_food_list=food_repository.search_lowest_price_food(session, food_name, 1, amount),
-            highest_price_food=food_repository.search_highest_price_food(session, food_name, 1, amount),
+            highest_price_food_list=food_repository.search_highest_price_food(session, food_name, 1, amount),
             biggest_weight_food_list=food_repository.search_biggest_weight_food(session, food_name, 1, amount),
             avg_price=food_repository.search_avg_price(session, food_name, 1),
             chart_data=food_repository.get_chart_data(session, food_name, 1),

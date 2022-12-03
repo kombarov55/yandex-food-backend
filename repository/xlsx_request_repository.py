@@ -44,4 +44,4 @@ def set_what_is_doing(session: Session, vo: XlsxRequestVO, s: str):
 
 
 def should_load_data(session: Session):
-    return session.query(XlsxRequestVO).filter(XlsxRequestVO.is_used_for_site is True).first() is None
+    return session.query(XlsxRequestVO).filter(XlsxRequestVO.id == 1).first() is None
