@@ -56,3 +56,6 @@ Content-Type: application/json
 ###
 GET https://eda.yandex.ru/api/v2/menu/retrieve/battuta_bistro
 content-type: application/json
+
+###
+GET localhost:8000/search_food/цезарь

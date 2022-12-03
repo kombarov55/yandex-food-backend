@@ -23,7 +23,7 @@ def load_restaurant_food(slug: str, restaurant_id, xlsx_request_vo: XlsxRequestV
                 description=get_field(item, "description"),
                 price=int(get_field(item, "price")),
                 weight=parse_weight(item),
-                src=get_nested_field(item, "picture", "uri"),
+                src="https://eda.yandex./" + query(item, "picture.uri").replace("{w}", "400").replace("{h}", "400"),
                 restaurant_id=restaurant_id,
                 external_id=get_field(item, "id"),
                 category_id=category_id,
@@ -46,12 +46,10 @@ def load_retail_food(category_ids: list, slug, xlsx_request_vo: XlsxRequestVO):
 
             categories = json["payload"]["categories"]
             for category in categories:
-                name = category["name"]
                 items = category["items"]
-                # print("received {} items for category {}".format(len(items), name))
-
                 if len(items) != 0:
                     for item in items:
+                        src = query(item, "picture.url", "").replace("{w}", "400").replace("{h}", "400")
                         vo = FoodVO(
                             xlsx_request_id=xlsx_request_vo.id,
                             restaurant_id=slug,
@@ -59,7 +57,7 @@ def load_retail_food(category_ids: list, slug, xlsx_request_vo: XlsxRequestVO):
                             description=get_field(item, "description"),
                             price=int(get_field(item, "price")),
                             weight=parse_weight(item),
-                            src=get_nested_field(item, "picture", "url"),
+                            src=src,
                             external_id=get_field(item, "public_id"),
                             place_type=PlaceType.shop
                         )
@@ -80,7 +78,6 @@ def load_retail_info(slug):
     json = rs.json()
 
     found_place = json["payload"]["foundPlace"]
-    place = json["payload"]["foundPlace"]["place"]
 
     delivery_time = ""
 
@@ -88,15 +85,25 @@ def load_retail_info(slug):
     if location_params is not None:
         delivery_time = location_params["deliveryTime"]["min"] + "-" + location_params["deliveryTime"]["max"],
 
+    src = query(json, "payload.foundPlace.place.picture.uri")
+    if src is not None:
+        src = "https://eda.yandex/" + src.replace("{w}", "400").replace("{h}", "400")
+
+    rating = query(json, "payload.foundPlace.place.rating", None)
+    if rating is not None:
+        rating = float(rating)
+
     return RestaurantVO(
         slug=slug,
-        name=place["name"],
-        rating=place["rating"],
-        rating_count=place["ratingCount"],
+        name=query(json, "payload.foundPlace.place.name"),
+        src=src,
+        rating=rating,
+        rating_count=int(query(json, "payload.foundPlace.place.ratingCount", 0)),
         delivery_time=delivery_time,
-        address=place["address"]["short"],
-        longitude=place["address"]["location"]["longitude"],
-        latitude=place["address"]["location"]["latitude"]
+        address=query(json, "payload.foundPlace.place.address.short"),
+        longitude=query(json, "payload.foundPlace.place.address.location.longitude"),
+        latitude=query(json, "payload.foundPlace.place.address.location.latitude"),
+        place_type="shop"
     )
 
 
@@ -107,6 +114,16 @@ def parse_weight(item: dict):
         return float(weight_str.split(' ')[0].replace(",", "."))
     if weight_str.lower().endswith("л") or weight_str.lower().endswith("кг"):
         return float(weight_str.split(' ')[0].replace(",", ".")) * 1000
+
+
+def query(obj, keys_str: str, default=None):
+    keys = keys_str.split(".")
+    for key in keys:
+        try:
+            obj = obj[key]
+        except KeyError:
+            return default
+    return obj
 
 
 def get_field(item: dict, name: str):

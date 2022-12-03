@@ -111,16 +111,20 @@ def parse_restaurant(page, session, slug, xlsx_request_vo: XlsxRequestVO):
 
     (open_at, close_at) = get_restaurant_work_time(page)
 
+    src = page.locator("img.MagicalImage2_image").get_attribute("src").replace("1100x825", "400x400")
+
     vo = RestaurantVO(
         xlsx_request_id=xlsx_request_vo.id,
         slug=slug,
         name=restaurant_name,
-        rating=rating,
-        rating_count=rating_count,
+        src=src,
+        rating=None if rating == "Мало" else float(rating),
+        rating_count=None if rating_count == "оценок" else int(rating_count),
         delivery_time=delivery_time,
         address=address,
         open_at=open_at,
-        close_at=close_at
+        close_at=close_at,
+        place_type="restaurant"
     )
     print(f"{restaurant_name} {rating} {rating_count} {delivery_time} {address}")
     restaurant_repository.save(session, vo)
