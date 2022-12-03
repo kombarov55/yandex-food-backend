@@ -23,7 +23,7 @@ def load_restaurant_food(slug: str, restaurant_id, xlsx_request_vo: XlsxRequestV
                 description=get_field(item, "description"),
                 price=int(get_field(item, "price")),
                 weight=parse_weight(item),
-                src="https://eda.yandex./" + query(item, "picture.uri").replace("{w}", "400").replace("{h}", "400"),
+                src="https://eda.yandex./" + query(item, "picture.uri", "").replace("{w}", "400").replace("{h}", "400"),
                 restaurant_id=restaurant_id,
                 external_id=get_field(item, "id"),
                 category_id=category_id,

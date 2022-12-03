@@ -1,18 +1,43 @@
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
+from config import database
 from model.restaurant import RestaurantVO, PlaceType
 from model.search_food import RestaurantDto, HighlightedRestaurantDto
 
 
 def save(session: Session, restaurant: RestaurantVO):
-    session.add(restaurant)
-    session.commit()
-    session.refresh(restaurant)
-    return restaurant
+    result = session.query(RestaurantVO).filter(RestaurantVO.slug == restaurant.slug).first()
+
+    if result is None:
+        session.add(restaurant)
+        session.commit()
+        session.refresh(restaurant)
+        return restaurant
+    else:
+        return result
 
 
 def find_all(session: Session, xlsx_request_id: int):
     return session.query(RestaurantVO).filter(RestaurantVO.xlsx_request_id == xlsx_request_id).all()
+
+
+def find_restaurants_by_serving_food_name(session: Session, food_name: str):
+    with database.engine.connect() as con:
+        sql = "select distinct restaurant_id " \
+              "from food " \
+              "where name like :name || '%' " \
+              "or name like '%' || :name || '%' " \
+              "or name like :lower_name || '%' " \
+              "or name like '%' || :lower_name || '%'"
+
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower())
+
+        slug_list = []
+        for row in rows:
+            slug_list.append(row[0])
+
+    return session.query(RestaurantVO).filter(RestaurantVO.slug.in_(slug_list)).all()
 
 
 def find_and_format_for_placemark(session: Session, xlsx_request_id: int):

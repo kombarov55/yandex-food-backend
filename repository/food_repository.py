@@ -30,7 +30,7 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
     session.commit()
 
 
-def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
+def search_lowest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
@@ -58,12 +58,11 @@ def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: 
                 external_id=row[5],
                 category_id=row[6]
             ))
-        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
-def search_highest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
+def search_highest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
@@ -91,12 +90,11 @@ def search_highest_price_food(session: Session, food_name: str, xlsx_request_id:
                 external_id=row[5],
                 category_id=row[6]
             ))
-        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
-def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
+def search_biggest_weight_food(session: Session, food_name: str, restaurant_list: list, amount: int):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
@@ -124,7 +122,6 @@ def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id
                 external_id=row[5],
                 category_id=row[6]
             ))
-        restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
@@ -137,25 +134,32 @@ def search_avg_price(session: Session, food_name: str, xlsx_request_id: int):
         .all()[0]["average"]
 
 
-def get_chart_data(session: Session, food_name: str, xlsx_request_id: int):
-    stmt = session.query(FoodVO).filter(FoodVO.xlsx_request_id == xlsx_request_id).filter(
-        or_(func.lower(FoodVO.name).contains(func.lower(food_name)),
-            func.lower(FoodVO.name).startswith(func.lower(food_name))))
-    print(stmt)
-    food_list = stmt \
-        .all()
+def get_chart_data(food_name: str, restaurants: list):
+    with database.engine.connect() as con:
+        sql = "select name, price, restaurant_id " \
+              "from food " \
+              "where xlsx_request_id = 1 " \
+              "and (" \
+              "name like :name || '%' " \
+              "or name like '%' || :name || '%' " \
+              "or name like :lower_name || '%' " \
+              "or name like '%' || :lower_name || '%'" \
+              ") "
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower())
 
-    restaurants = restaurant_repository.find_all(session, xlsx_request_id)
+        result = []
 
-    result = []
+        for row in rows:
+            name = row[0]
+            price = row[1]
+            slug = row[2]
+            restaurant_name = find_restaurant(restaurants, slug).name
 
-    for x in food_list:
-        result.append(FoodChartDto(
-            shop_name=find_restaurant(restaurants, x.restaurant_id).name,
-            price=x.price
-        ))
-
-    return result
+            result.append(FoodChartDto(
+                shop_name="{} ({})".format(name, restaurant_name),
+                price=price
+            ))
+        return result
 
 
 def convert_to_dto(vo, restaurant_list):
@@ -183,17 +187,3 @@ def build_link(vo: FoodVO, restaurant: RestaurantVO):
     else:
         return "https://eda.yandex.ru/retail/{}/product/{}?placeSlug={}".format(vo.restaurant_id, vo.external_id,
                                                                                 vo.restaurant_id)
-
-
-if __name__ == "__main__":
-    DATABASE_URL = "sqlite:///{}".format("../yandex-food.db")
-
-    engine = create_engine(
-        DATABASE_URL, connect_args={"check_same_thread": False}
-    )
-
-    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    session = session_local()
-    result = get_chart_data(session, "Цезарь", 1)
-
-    print(result)
