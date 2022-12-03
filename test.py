@@ -49,7 +49,6 @@ def test_con():
 
 if __name__ == "__main__":
     session = database.session_local()
-    result = test_rest_food(session)
 
-    print(len(result))
-    print(result)
+    food_repository.search_avg_price("том-ям", "restaurant")
+

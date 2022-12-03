@@ -57,7 +57,7 @@ def parse_all_shops(page, session, vo: XlsxRequestVO):
 
     xlsx_request_repository.set_what_is_doing(session, vo, "Получаем все ссылки на магазины")
     hrefs = get_hrefs(page)
-    print("parsed hrefs: {}".format(hrefs))
+    print("parsed hrefs: len={}".format(len(hrefs)))
 
     for i in range(0, len(hrefs)):
         try:

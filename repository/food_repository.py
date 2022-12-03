@@ -30,11 +30,12 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
     session.commit()
 
 
-def search_lowest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int):
+def search_lowest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type: str):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
+              "and place_type = :place_type " \
               "and (" \
               "name like :name || '%' " \
               "or name like '%' || :name || '%' " \
@@ -45,7 +46,8 @@ def search_lowest_price_food(session: Session, food_name: str, restaurant_list: 
               "order by price asc " \
               "limit :limit"
 
-        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount,
+                           place_type=place_type)
 
         food_list = []
         for row in rows:
@@ -62,11 +64,12 @@ def search_lowest_price_food(session: Session, food_name: str, restaurant_list: 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
-def search_highest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int):
+def search_highest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
+              "and place_type = :place_type " \
               "and (" \
               "name like :name || '%' " \
               "or name like '%' || :name || '%' " \
@@ -77,7 +80,8 @@ def search_highest_price_food(session: Session, food_name: str, restaurant_list:
               "order by price desc " \
               "limit :limit"
 
-        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount,
+                           place_type=place_type)
 
         food_list = []
         for row in rows:
@@ -94,11 +98,12 @@ def search_highest_price_food(session: Session, food_name: str, restaurant_list:
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
-def search_biggest_weight_food(session: Session, food_name: str, restaurant_list: list, amount: int):
+def search_biggest_weight_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type: str):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
+              "and place_type = :place_type " \
               "and (" \
               "name like :name || '%' " \
               "or name like '%' || :name || '%' " \
@@ -109,7 +114,8 @@ def search_biggest_weight_food(session: Session, food_name: str, restaurant_list
               "order by weight desc " \
               "limit :limit"
 
-        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount)
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), limit=amount,
+                           place_type=place_type)
 
         food_list = []
         for row in rows:
@@ -126,26 +132,36 @@ def search_biggest_weight_food(session: Session, food_name: str, restaurant_list
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
 
-def search_avg_price(session: Session, food_name: str, xlsx_request_id: int):
-    return session.query(FoodVO) \
-        .with_entities(func.avg(FoodVO.price).label("average")) \
-        .filter(FoodVO.xlsx_request_id == xlsx_request_id) \
-        .filter(func.lower(FoodVO.name).contains(food_name.lower())) \
-        .all()[0]["average"]
+def search_avg_price(food_name: str, place_type: str):
+    with database.engine.connect() as con:
+        result = con.execute("select avg(price) "
+                           "from food "
+                           "where xlsx_request_id = 1 "
+                           "and place_type = :place_type "
+                           "and ("
+                           "name like :food_name || '%' "
+                           "or name like '%' || :food_name || '%' "
+                           "or name like :food_name_lower || '%' "
+                           "or name like '%' || :food_name_lower || '%')",
+                           place_type=place_type,
+                           food_name=food_name.capitalize(),
+                           food_name_lower=food_name.lower())
+        return result.scalar()
 
 
-def get_chart_data(food_name: str, restaurants: list):
+def get_chart_data(food_name: str, restaurants: list, place_type: str):
     with database.engine.connect() as con:
         sql = "select name, price, restaurant_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
+              "and place_type = :place_type " \
               "and (" \
               "name like :name || '%' " \
               "or name like '%' || :name || '%' " \
               "or name like :lower_name || '%' " \
               "or name like '%' || :lower_name || '%'" \
               ") "
-        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower())
+        rows = con.execute(sql, place_type=place_type, name=food_name.capitalize(), lower_name=food_name.lower())
 
         result = []
 
@@ -162,11 +178,15 @@ def get_chart_data(food_name: str, restaurants: list):
         return result
 
 
-def find_best_food(restaurant_list: list, food_name: str, amount: int):
+def find_best_food(restaurant_list: list, food_name: str, amount: int, place_type: str):
     with open("./best-food.sql", "r") as file:
         sql = file.read().rstrip()
     with database.engine.connect() as con:
-        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), amount=amount)
+        rows = con.execute(sql,
+                           name=food_name.capitalize(),
+                           lower_name=food_name.lower(),
+                           amount=amount,
+                           place_type=place_type)
         food_list = []
         for row in rows:
             food_list.append(FoodVO(
@@ -203,7 +223,10 @@ def find_restaurant(xs, restaurant_id):
 
 def build_link(vo: FoodVO, restaurant: RestaurantVO):
     if restaurant.place_type == PlaceType.restaurant:
-        return "https://eda.yandex.ru/moscow/r/{}?category={}&item={}&placeSlug={}".format(restaurant.slug, vo.category_id, vo.external_id, restaurant.slug)
+        return "https://eda.yandex.ru/moscow/r/{}?category={}&item={}&placeSlug={}".format(restaurant.slug,
+                                                                                           vo.category_id,
+                                                                                           vo.external_id,
+                                                                                           restaurant.slug)
     else:
         return "https://eda.yandex.ru/retail/{}/product/{}?placeSlug={}".format(vo.restaurant_id, vo.external_id,
                                                                                 vo.restaurant_id)

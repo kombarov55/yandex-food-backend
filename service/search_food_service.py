@@ -18,15 +18,15 @@ def find(food_name: str):
 
 def search_food_response_item(session, food_name, amount, restaurants, place_type):
     return SearchFoodResponseItem(
-            lowest_price_food_list=food_repository.search_lowest_price_food(session, food_name, restaurants, amount),
-            highest_price_food_list=food_repository.search_highest_price_food(session, food_name, restaurants, amount),
-            biggest_weight_food_list=food_repository.search_biggest_weight_food(session, food_name, restaurants, amount),
-            avg_price=food_repository.search_avg_price(session, food_name, 1),
-            chart_data=food_repository.get_chart_data(food_name, restaurants),
+            lowest_price_food_list=food_repository.search_lowest_price_food(session, food_name, restaurants, amount, place_type),
+            highest_price_food_list=food_repository.search_highest_price_food(session, food_name, restaurants, amount, place_type),
+            biggest_weight_food_list=food_repository.search_biggest_weight_food(session, food_name, restaurants, amount, place_type),
+            avg_price=food_repository.search_avg_price(food_name, place_type),
+            chart_data=food_repository.get_chart_data(food_name, restaurants, place_type),
             restaurants=restaurant_repository.find_and_format_for_placemark(session, 1),
             best_highlighted_restaurant=restaurant_repository.get_best_rating_restaurant(session, 1),
             worst_highlighted_restaurant=restaurant_repository.get_worst_rating_restaurant(session, 1),
-            best_choice_food_list=food_repository.find_best_food(restaurants, food_name, amount)
+            best_choice_food_list=food_repository.find_best_food(restaurants, food_name, amount, place_type)
         )
 
 
