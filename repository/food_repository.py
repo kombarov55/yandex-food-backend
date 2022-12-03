@@ -29,12 +29,15 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
 
 
 def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
-    all = session.query(FoodVO) \
+    stmt = session.query(FoodVO) \
         .filter(FoodVO.xlsx_request_id == xlsx_request_id) \
-        .filter(func.lower(FoodVO.name).contains(food_name.lower())) \
+        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
         .order_by(FoodVO.price.asc()) \
         .limit(amount) \
-        .all()
+
+    print(stmt)
+
+    all = stmt.all()
 
     restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
@@ -44,7 +47,7 @@ def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: 
 def search_highest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
     all = session.query(FoodVO) \
         .filter(FoodVO.xlsx_request_id == xlsx_request_id) \
-        .filter(func.lower(FoodVO.name).contains(food_name.lower())) \
+        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
         .order_by(FoodVO.price.desc()) \
         .limit(amount) \
         .all()
@@ -55,9 +58,11 @@ def search_highest_price_food(session: Session, food_name: str, xlsx_request_id:
 
 
 def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
-    all = session.query(FoodVO).filter(FoodVO.xlsx_request_id == xlsx_request_id).filter(
-        func.lower(FoodVO.name).contains(food_name.lower())).filter(FoodVO.weight is not None).order_by(
-        FoodVO.weight.desc()).limit(amount).all()
+    all = session.query(FoodVO)\
+        .filter(FoodVO.xlsx_request_id == xlsx_request_id)\
+        .filter(or_(func.lower(FoodVO.name).contains(func.lower(food_name)), func.lower(FoodVO.name).startswith(func.lower(food_name)))) \
+        .filter(FoodVO.weight is not None)\
+        .order_by(FoodVO.weight.desc()).limit(amount).all()
 
     restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 

@@ -9,7 +9,7 @@ class FoodVO(database.base):
     id = Column(Integer, primary_key=True, index=True)
     external_id = Column(String)
     category_id = Column(String)
-    restaurant_id = Column(Integer, index=True)
+    restaurant_id = Column(String, index=True)
     xlsx_request_id = Column(Integer, index=True)
     name = Column(String)
     description = Column(String)

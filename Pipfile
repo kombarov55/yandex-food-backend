@@ -12,6 +12,7 @@ xlsxwriter = "*"
 uvicorn = "*"
 pillow = "*"
 2captcha-python = "*"
+psycopg2 = "*"
 
 [dev-packages]
 
