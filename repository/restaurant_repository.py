@@ -34,6 +34,7 @@ def find_and_format_for_placemark(session: Session, xlsx_request_id: int):
 def get_best_rating_restaurant(session: Session, xlsx_reuqest_id: int):
     first = session.query(RestaurantVO)\
         .filter(RestaurantVO.xlsx_request_id == xlsx_reuqest_id)\
+        .filter(RestaurantVO.rating.isnot(None))\
         .order_by(RestaurantVO.rating.desc())\
         .first()
 
@@ -42,7 +43,8 @@ def get_best_rating_restaurant(session: Session, xlsx_reuqest_id: int):
 
 def get_worst_rating_restaurant(session: Session, xlsx_reuqest_id: int):
     first = session.query(RestaurantVO)\
-        .filter(RestaurantVO.xlsx_request_id == xlsx_reuqest_id)\
+        .filter(RestaurantVO.xlsx_request_id == xlsx_reuqest_id) \
+        .filter(RestaurantVO.rating.isnot(None)) \
         .order_by(RestaurantVO.rating.asc())\
         .first()
 

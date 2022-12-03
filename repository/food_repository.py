@@ -4,6 +4,7 @@ from sqlalchemy.sql import exists
 
 from config import database
 from model.food import FoodVO, PlaceType
+from model.restaurant import RestaurantVO
 from model.search_food import FoodChartDto, FoodDto
 from repository import restaurant_repository
 
@@ -31,7 +32,7 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
 
 def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and (" \
@@ -54,7 +55,8 @@ def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: 
                 price=row[2],
                 weight=row[3],
                 restaurant_id=row[4],
-                external_id=row[5]
+                external_id=row[5],
+                category_id=row[6]
             ))
         restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
@@ -63,7 +65,7 @@ def search_lowest_price_food(session: Session, food_name: str, xlsx_request_id: 
 
 def search_highest_price_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and (" \
@@ -86,7 +88,8 @@ def search_highest_price_food(session: Session, food_name: str, xlsx_request_id:
                 price=row[2],
                 weight=row[3],
                 restaurant_id=row[4],
-                external_id=row[5]
+                external_id=row[5],
+                category_id=row[6]
             ))
         restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
@@ -95,7 +98,7 @@ def search_highest_price_food(session: Session, food_name: str, xlsx_request_id:
 
 def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id: int, amount: int):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and (" \
@@ -118,7 +121,8 @@ def search_biggest_weight_food(session: Session, food_name: str, xlsx_request_id
                 price=row[2],
                 weight=row[3],
                 restaurant_id=row[4],
-                external_id=row[5]
+                external_id=row[5],
+                category_id=row[6]
             ))
         restaurant_list = restaurant_repository.find_all(session, xlsx_request_id)
 
@@ -163,7 +167,7 @@ def convert_to_dto(vo, restaurant_list):
         restaurant_name=restaurant.name,
         address=restaurant.address,
         weight=vo.weight,
-        link=build_link(vo))
+        link=build_link(vo, restaurant))
 
 
 def find_restaurant(xs, restaurant_id):
@@ -173,10 +177,9 @@ def find_restaurant(xs, restaurant_id):
     return None
 
 
-def build_link(vo: FoodVO):
-    if vo.place_type == PlaceType.restaurant:
-        return "https://eda.yandex.ru/moscow/r/{}?category=23044521&item={}&placeSlug={}&shippingType=delivery".format(
-            vo.restaurant_id, vo.external_id, vo.restaurant_id)
+def build_link(vo: FoodVO, restaurant: RestaurantVO):
+    if restaurant.place_type == PlaceType.restaurant:
+        return "https://eda.yandex.ru/moscow/r/{}?category={}&item={}&placeSlug={}".format(restaurant.slug, vo.category_id, vo.external_id, restaurant.slug)
     else:
         return "https://eda.yandex.ru/retail/{}/product/{}?placeSlug={}".format(vo.restaurant_id, vo.external_id,
                                                                                 vo.restaurant_id)

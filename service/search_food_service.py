@@ -1,4 +1,5 @@
 from config import database
+from model.restaurant import PlaceType
 from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, RestaurantDto, HighlightedRestaurantDto, \
     SearchFoodResponseItem
 from repository import food_repository, restaurant_repository
@@ -9,7 +10,13 @@ def find(food_name: str):
     amount = 5
 
     return SearchFoodResponse(
-        by_restaurant=SearchFoodResponseItem(
+        by_restaurant=search_food_response_item(session, food_name, amount, PlaceType.restaurant),
+        by_shop=search_food_response_item(session, food_name, amount, PlaceType.shop)
+    )
+
+
+def search_food_response_item(session, food_name, amount, place_type):
+    return SearchFoodResponseItem(
             lowest_price_food_list=food_repository.search_lowest_price_food(session, food_name, 1, amount),
             highest_price_food_list=food_repository.search_highest_price_food(session, food_name, 1, amount),
             biggest_weight_food_list=food_repository.search_biggest_weight_food(session, food_name, 1, amount),
@@ -19,29 +26,10 @@ def find(food_name: str):
             best_highlighted_restaurant=restaurant_repository.get_best_rating_restaurant(session, 1),
             worst_highlighted_restaurant=restaurant_repository.get_worst_rating_restaurant(session, 1),
             best_choice_food=food_repository.search_lowest_price_food(session, food_name, 1, amount)
-        ),
-        by_shop=SearchFoodResponseItem(
-            lowest_price_food_list=food_repository.search_lowest_price_food(session, food_name, 1, amount),
-            highest_price_food=food_repository.search_highest_price_food(session, food_name, 1, amount),
-            biggest_weight_food_list=food_repository.search_biggest_weight_food(session, food_name, 1, amount),
-            avg_price=food_repository.search_avg_price(session, food_name, 1),
-            chart_data=food_repository.get_chart_data(session, food_name, 1),
-            restaurants=restaurant_repository.find_and_format_for_placemark(session, 1),
-            best_highlighted_restaurant=restaurant_repository.get_best_rating_restaurant(session, 1),
-            worst_highlighted_restaurant=restaurant_repository.get_worst_rating_restaurant(session, 1),
-            best_choice_food=food_repository.search_lowest_price_food(session, food_name, 1, amount)
         )
-    )
 
 
-def stub_find():
-    return SearchFoodResponse(
-        by_restaurant=search_food_response_item(),
-        by_shop=search_food_response_item()
-    )
-
-
-def search_food_response_item():
+def stub_search_food_response_item():
     return SearchFoodResponseItem(
         lowest_price_food_list=[
             FoodDto(name="Том ям с креветками",
