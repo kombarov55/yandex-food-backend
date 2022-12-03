@@ -41,7 +41,11 @@ def find_restaurants_by_serving_food_name(session: Session, food_name: str):
 
 
 def find_and_format_for_placemark(session: Session, xlsx_request_id: int):
-    restaurants = find_all(session, xlsx_request_id)
+    restaurants = session.query(RestaurantVO)\
+        .filter(RestaurantVO.longitude.isnot(None))\
+        .filter(RestaurantVO.latitude.isnot(None))\
+        .all()
+
     return list(map(lambda x: RestaurantDto(
         name=x.name,
         address=x.address,
@@ -92,7 +96,7 @@ def build_link(vo: RestaurantVO):
     if vo.place_type == PlaceType.restaurant:
         return "https://eda.yandex.ru/moscow/r/{}?placeSlug={}&shippingType=delivery".format(vo.slug, vo.slug)
 
-    return "https://eda.yandex.ru/retail/{}?placeSlug=".format(vo.slug, vo.slug)
+    return "https://eda.yandex.ru/retail/{}?placeSlug={}".format(vo.slug, vo.slug)
 
 
 def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):

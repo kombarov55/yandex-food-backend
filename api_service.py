@@ -110,6 +110,9 @@ def load_retail_info(slug):
 def parse_weight(item: dict):
     weight_str = get_field(item, "weight")
 
+    if weight_str is None:
+        return None
+
     if weight_str.lower().endswith("г") or weight_str.lower().endswith("мл"):
         return float(weight_str.split(' ')[0].replace(",", "."))
     if weight_str.lower().endswith("л") or weight_str.lower().endswith("кг"):
