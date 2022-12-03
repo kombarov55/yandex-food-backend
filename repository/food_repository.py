@@ -162,6 +162,25 @@ def get_chart_data(food_name: str, restaurants: list):
         return result
 
 
+def find_best_food(restaurant_list: list, food_name: str, amount: int):
+    with open("./best-food.sql", "r") as file:
+        sql = file.read().rstrip()
+    with database.engine.connect() as con:
+        rows = con.execute(sql, name=food_name.capitalize(), lower_name=food_name.lower(), amount=amount)
+        food_list = []
+        for row in rows:
+            food_list.append(FoodVO(
+                name=row[0],
+                src=row[1],
+                price=row[2],
+                weight=row[3],
+                restaurant_id=row[4],
+                external_id=row[5],
+                category_id=row[6]
+            ))
+        return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
+
+
 def convert_to_dto(vo, restaurant_list):
     restaurant = find_restaurant(restaurant_list, vo.restaurant_id)
     return FoodDto(
@@ -171,6 +190,7 @@ def convert_to_dto(vo, restaurant_list):
         restaurant_name=restaurant.name,
         address=restaurant.address,
         weight=vo.weight,
+        rating=restaurant.rating,
         link=build_link(vo, restaurant))
 
 

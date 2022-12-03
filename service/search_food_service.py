@@ -26,7 +26,7 @@ def search_food_response_item(session, food_name, amount, restaurants, place_typ
             restaurants=restaurant_repository.find_and_format_for_placemark(session, 1),
             best_highlighted_restaurant=restaurant_repository.get_best_rating_restaurant(session, 1),
             worst_highlighted_restaurant=restaurant_repository.get_worst_rating_restaurant(session, 1),
-            best_choice_food=food_repository.search_lowest_price_food(session, food_name, restaurants, amount)
+            best_choice_food_list=food_repository.find_best_food(restaurants, food_name, amount)
         )
 
 

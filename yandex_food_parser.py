@@ -52,7 +52,7 @@ def parse_all_shops(page, session, vo: XlsxRequestVO):
 
     print("starting scrolling to bottom")
     xlsx_request_repository.set_what_is_doing(session, vo, "Скролим вниз, до конца страницы")
-    # scroll_slowly_to_bottom(page)
+    scroll_slowly_to_bottom(page)
     print("end scrolling to bottom")
 
     xlsx_request_repository.set_what_is_doing(session, vo, "Получаем все ссылки на магазины")

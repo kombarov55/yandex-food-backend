@@ -8,6 +8,7 @@ class FoodDto(pydantic.BaseModel):
     restaurant_name: str
     address: str
     weight: float = None
+    rating: float = None
     link: str = "https://eda.yandex.ru/retail/vkusvill/product/a4c5012a-703c-4d1b-8be3-c02dc323ab98?placeSlug=vkusvill_marosejka_2_15s1_rmxdp"
 
 
