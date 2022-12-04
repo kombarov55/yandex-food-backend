@@ -30,6 +30,17 @@ def delete_by_xlsx_request_id(session: Session, xlsx_request_id: int):
     session.commit()
 
 
+def count(food_name: str):
+    with database.engine.connect() as con:
+        return con.execute("select count(*) "
+                    "from food "
+                    "where name like :name || '%' " 
+                    "or name like '%' || :name || '%' " 
+                    "or name like :lower_name || '%' " 
+                    "or name like '%' || :lower_name || '%'", name=food_name.capitalize(), lower_name=food_name.lower())\
+            .scalar()
+
+
 def search_lowest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type: str):
     with database.engine.connect() as con:
         sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
@@ -135,17 +146,17 @@ def search_biggest_weight_food(session: Session, food_name: str, restaurant_list
 def search_avg_price(food_name: str, place_type: str):
     with database.engine.connect() as con:
         result = con.execute("select avg(price) "
-                           "from food "
-                           "where xlsx_request_id = 1 "
-                           "and place_type = :place_type "
-                           "and ("
-                           "name like :food_name || '%' "
-                           "or name like '%' || :food_name || '%' "
-                           "or name like :food_name_lower || '%' "
-                           "or name like '%' || :food_name_lower || '%')",
-                           place_type=place_type,
-                           food_name=food_name.capitalize(),
-                           food_name_lower=food_name.lower())
+                             "from food "
+                             "where xlsx_request_id = 1 "
+                             "and place_type = :place_type "
+                             "and ("
+                             "name like :food_name || '%' "
+                             "or name like '%' || :food_name || '%' "
+                             "or name like :food_name_lower || '%' "
+                             "or name like '%' || :food_name_lower || '%')",
+                             place_type=place_type,
+                             food_name=food_name.capitalize(),
+                             food_name_lower=food_name.lower())
         return result.scalar()
 
 

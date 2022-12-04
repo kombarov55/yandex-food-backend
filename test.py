@@ -3,7 +3,7 @@ from pprint import pprint
 
 from config import database
 from model.food import FoodVO
-from repository import food_repository, restaurant_repository
+from repository import food_repository, restaurant_repository, compilation_repository
 
 
 def test_lowest_price(session):
@@ -48,7 +48,13 @@ def test_con():
 
 
 if __name__ == "__main__":
+    database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
 
-    food_repository.search_avg_price("том-ям", "restaurant")
+    compilation_repository.add_item(session, "kombarov55@gmail.com", 1)
+    compilation_repository.add_item(session, "kombarov55@gmail.com", 3)
+    session.close()
+    session = database.session_local()
+    compilation_repository.remove_item(session, "kombarov55@gmail.com", "Избранное", 1)
+    print(compilation_repository.find(session, "kombarov55@gmail.com", "Избранное"))
 

@@ -52,8 +52,8 @@ async def restore_pwd(email: str, session: Session = Depends(get_session)):
     restore_pwd_service.run(session, email)
 
 
-@app.get("/search_food/{food_name}/{amount}")
-async def search_food(food_name: str, amount: int, session: Session = Depends(get_session)):
+@app.get("/search_food/{food_name}/{amount}/{email}")
+async def search_food(food_name: str, amount: int, email:str, session: Session = Depends(get_session)):
     return search_food_service.find(food_name)
 
 

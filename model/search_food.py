@@ -41,11 +41,17 @@ class HighlightedRestaurantDto(pydantic.BaseModel):
     href: str
 
 
+class SearchSummary(pydantic.BaseModel):
+    items_found: int
+    places_found: int
+    avg_price: int
+
+
 class SearchFoodResponseItem(pydantic.BaseModel):
+    summary: SearchSummary = None
     lowest_price_food_list: list = None
     highest_price_food_list: list = None
     biggest_weight_food_list: list = None
-    avg_price: float = None
     chart_data: list = None
     restaurants: list = None
     best_highlighted_restaurant: HighlightedRestaurantDto = None
