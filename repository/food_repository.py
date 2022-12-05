@@ -230,11 +230,66 @@ def convert_to_dto(vo, restaurant_list):
         link=build_link(vo, restaurant))
 
 
+def find_by_ids(ids_joined: list):
+    with database.engine.connect() as con:
+        sql = """
+        select  food.id, 
+        food.name, 
+        food.src, 
+        price, 
+        r.name restaurant_name,
+        r.address address,
+        weight,
+        r.rating restaurant_rating, 
+        external_id, 
+        category_id, 
+        r.place_type,
+        r.slug
+        from food 
+        join restaurant r on food.restaurant_id = r.slug 
+        where food.xlsx_request_id = 1
+        and food.id in ({})
+        """.format(ids_joined)
+
+        rows = con.execute(sql)
+
+        food_list = []
+        for row in rows:
+            external_id = row[8]
+            category_id = row[9]
+            place_type = row[10]
+            slug = row[11]
+            food_list.append(FoodDto(
+                id=row[0],
+                name=row[1],
+                src=row[2],
+                price=row[3],
+                restaurant_name=row[4],
+                address=row[5],
+                weight=row[6],
+                rating=row[7],
+                link=build_link_ovverriden(slug, category_id, external_id, place_type)
+            ))
+
+        return food_list
+
+
 def find_restaurant(xs, restaurant_id):
     for x in xs:
         if x.slug == restaurant_id:
             return x
     return None
+
+
+def build_link_ovverriden(slug, category_id, external_id, place_type):
+    if place_type == PlaceType.restaurant:
+        return "https://eda.yandex.ru/moscow/r/{}?category={}&item={}&placeSlug={}".format(slug,
+                                                                                           category_id,
+                                                                                           external_id,
+                                                                                           slug)
+    else:
+        return "https://eda.yandex.ru/retail/{}/product/{}?placeSlug={}".format(slug, external_id,
+                                                                                slug)
 
 
 def build_link(vo: FoodVO, restaurant: RestaurantVO):

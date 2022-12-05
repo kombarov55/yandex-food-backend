@@ -51,6 +51,8 @@ if __name__ == "__main__":
     database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
 
-    rs = compilation_repository.find_all(session, "kombarov55@gmail.com")
+    ids = compilation_repository.find_all_joined(session, "kombarov55@gmail.com")
+
+    rs = food_repository.find_by_ids(ids)
     print("DEBUG")
 

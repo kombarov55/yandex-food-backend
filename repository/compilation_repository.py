@@ -1,16 +1,24 @@
 from sqlalchemy.orm import Session
 
-from model.compilation import CompilationVO
+from config import database
+from model.compilation import CompilationVO, CompilationDto, CompilationResponse
 
 
 def find(session: Session, email: str, name: str):
-    return session.query(CompilationVO) \
+    stmt = session.query(CompilationVO) \
         .filter(CompilationVO.account_email.ilike(email))\
-        .filter(CompilationVO.name.ilike(name)) \
-        .first()
+        .filter(CompilationVO.name.ilike(name))
+    print(stmt)
+    return stmt.first()
 
 
 def find_all(session: Session, email: str):
+    return session.query(CompilationVO) \
+        .filter(CompilationVO.account_email.ilike(email)) \
+        .all()
+
+
+def find_all_joined(session: Session, email: str):
     all = session.query(CompilationVO) \
         .filter(CompilationVO.account_email.ilike(email)) \
         .all()
@@ -23,13 +31,13 @@ def find_all(session: Session, email: str):
     return result
 
 
-def add_item(session: Session, email: str, food_id: int):
-    vo = find(session, email, "Избранное")
+def add_item(session: Session, email: str, food_id: int, name = "Избранное"):
+    vo = find(session, email, name)
 
     if vo is None:
         vo = CompilationVO(
             account_email=email,
-            name="Избранное",
+            name=name,
             values=str(food_id)
         )
     else:
@@ -44,4 +52,10 @@ def remove_item(session: Session, email: str, name: str, food_id: int):
     values.remove(str(food_id))
     vo.values = ", ".join(values)
     session.add(vo)
+    session.commit()
+
+
+def remove_compilation(session: Session, email: str, name: str):
+    vo = find(session, email, name)
+    session.delete(vo)
     session.commit()

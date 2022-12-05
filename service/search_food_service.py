@@ -10,7 +10,7 @@ def find(food_name: str, email: str):
 
     if food_cache.exists(food_name):
         cached_rs = food_cache.get(food_name)
-        fav_ids = compilation_repository.find_all(session, email)
+        fav_ids = compilation_repository.find_all_joined(session, email)
         cached_rs.by_restaurant.favorite_food_item_ids = fav_ids
         cached_rs.by_shop.favorite_food_item_ids = fav_ids
         return cached_rs
@@ -28,7 +28,7 @@ def find(food_name: str, email: str):
 
 def search_food_response_item(session, food_name, amount, restaurants, place_type, email):
     return SearchFoodResponseItem(
-        favorite_food_item_ids=compilation_repository.find_all(session, email),
+        favorite_food_item_ids=compilation_repository.find_all_joined(session, email),
         summary=SearchSummary(
             items_found=food_repository.count(food_name),
             places_found=len(restaurants),
