@@ -86,6 +86,11 @@ async def find_all_compilations(email: str, session: Session = Depends(get_sessi
     return compilation_service.find(session, email)
 
 
+@app.get("/fix")
+async def fix(session: Session = Depends(get_session)):
+    compilation_repository.fix(session)
+
+
 app.mount("/static", StaticFiles(directory="reports"), name="static")
 
 app.add_middleware(
