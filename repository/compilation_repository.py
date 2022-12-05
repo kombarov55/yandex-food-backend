@@ -50,10 +50,14 @@ def fix(session: Session):
     all = session.query(CompilationVO).all()
     for vo in all:
         xs = vo.values.split(", ")
-        xs.remove("")
-        vo.values = ", ".join(xs)
-        session.add(vo)
+        try:
+            xs.remove("")
+            vo.values = ", ".join(xs)
+            session.add(vo)
+        except:
+            print("x in not in list: {}".format(xs))
     session.commit()
+
 
 def remove_item(session: Session, email: str, name: str, food_id: int):
     vo = find(session, email, name)
