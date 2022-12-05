@@ -43,9 +43,9 @@ class HighlightedRestaurantDto(pydantic.BaseModel):
 
 
 class SearchSummary(pydantic.BaseModel):
-    items_found: int
-    places_found: int
-    avg_price: int
+    items_found: int = None
+    places_found: int = None
+    avg_price: int = None
 
 
 class SearchFoodResponseItem(pydantic.BaseModel):
