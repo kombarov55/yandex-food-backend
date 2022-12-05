@@ -43,7 +43,7 @@ def count(food_name: str):
 
 def search_lowest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type: str):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id, id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and place_type = :place_type " \
@@ -69,7 +69,8 @@ def search_lowest_price_food(session: Session, food_name: str, restaurant_list: 
                 weight=row[3],
                 restaurant_id=row[4],
                 external_id=row[5],
-                category_id=row[6]
+                category_id=row[6],
+                id = row[7]
             ))
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
@@ -77,7 +78,7 @@ def search_lowest_price_food(session: Session, food_name: str, restaurant_list: 
 
 def search_highest_price_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id, id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and place_type = :place_type " \
@@ -103,7 +104,8 @@ def search_highest_price_food(session: Session, food_name: str, restaurant_list:
                 weight=row[3],
                 restaurant_id=row[4],
                 external_id=row[5],
-                category_id=row[6]
+                category_id=row[6],
+                id=row[7]
             ))
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
@@ -111,7 +113,7 @@ def search_highest_price_food(session: Session, food_name: str, restaurant_list:
 
 def search_biggest_weight_food(session: Session, food_name: str, restaurant_list: list, amount: int, place_type: str):
     with database.engine.connect() as con:
-        sql = "select name, src, price, weight, restaurant_id, external_id, category_id " \
+        sql = "select name, src, price, weight, restaurant_id, external_id, category_id, id " \
               "from food " \
               "where xlsx_request_id = 1 " \
               "and place_type = :place_type " \
@@ -137,7 +139,8 @@ def search_biggest_weight_food(session: Session, food_name: str, restaurant_list
                 weight=row[3],
                 restaurant_id=row[4],
                 external_id=row[5],
-                category_id=row[6]
+                category_id=row[6],
+                id=row[7]
             ))
 
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
@@ -207,7 +210,8 @@ def find_best_food(restaurant_list: list, food_name: str, amount: int, place_typ
                 weight=row[3],
                 restaurant_id=row[4],
                 external_id=row[5],
-                category_id=row[6]
+                category_id=row[6],
+                id=row[7]
             ))
         return list(map(lambda x: convert_to_dto(x, restaurant_list), food_list))
 
@@ -215,6 +219,7 @@ def find_best_food(restaurant_list: list, food_name: str, amount: int, place_typ
 def convert_to_dto(vo, restaurant_list):
     restaurant = find_restaurant(restaurant_list, vo.restaurant_id)
     return FoodDto(
+        id=vo.id,
         name=vo.name,
         src=vo.src.replace("{w}", "400").replace("{h}", "400"),
         price=vo.price,

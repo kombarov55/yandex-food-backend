@@ -6,7 +6,7 @@ with avg_summary as (select avg(price) avg_price, avg(weight) avg_weight, avg(r.
                        and (food.name like :name || '%' or food.name like '%' || :name || '%' or
                             food.name like :lower_name || '%' or food.name like '%' || :lower_name || '%')
 )
-select food.name, food.src, food.price, food.weight, food.restaurant_id, food.external_id, food.category_id,
+select food.name, food.src, food.price, food.weight, food.restaurant_id, food.external_id, food.category_id, food.id,
        (1 - (cast((food.price - avg_summary.avg_price) as real) / avg_summary.avg_price)) +
        cast((food.weight - avg_summary.avg_weight) as real) / avg_summary.avg_weight +
        cast((r.rating - avg_summary.avg_rating) as real) / avg_summary.avg_rating as percent_sum

@@ -51,10 +51,6 @@ if __name__ == "__main__":
     database.base.metadata.create_all(bind=database.engine)
     session = database.session_local()
 
-    compilation_repository.add_item(session, "kombarov55@gmail.com", 1)
-    compilation_repository.add_item(session, "kombarov55@gmail.com", 3)
-    session.close()
-    session = database.session_local()
-    compilation_repository.remove_item(session, "kombarov55@gmail.com", "Избранное", 1)
-    print(compilation_repository.find(session, "kombarov55@gmail.com", "Избранное"))
+    rs = compilation_repository.find_all(session, "kombarov55@gmail.com")
+    print("DEBUG")
 

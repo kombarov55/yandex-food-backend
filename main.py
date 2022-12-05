@@ -7,7 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 from config import database
-from repository import xlsx_request_repository, account_repository
+from repository import xlsx_request_repository, account_repository, compilation_repository
 from service import restore_pwd_service, search_food_service, prepare_data_service
 
 app = FastAPI()
@@ -54,7 +54,19 @@ async def restore_pwd(email: str, session: Session = Depends(get_session)):
 
 @app.get("/search_food/{food_name}/{amount}/{email}")
 async def search_food(food_name: str, amount: int, email:str, session: Session = Depends(get_session)):
-    return search_food_service.find(food_name)
+    return search_food_service.find(food_name, email)
+
+
+@app.post("/account/{email}/compilation/{food_id}")
+async def add_compilation_item(email: str, food_id: int, session: Session = Depends(get_session)):
+    compilation_repository.add_item(session, email, food_id)
+    return "OK"
+
+
+@app.delete("/account/{email}/compilation/{name}/{food_id}")
+async def remove_compilation_item(email: str, name: str, food_id: int, session: Session = Depends(get_session)):
+    compilation_repository.remove_item(session, email, name, food_id)
+    return "OK"
 
 
 app.mount("/static", StaticFiles(directory="reports"), name="static")

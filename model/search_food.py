@@ -2,6 +2,7 @@ import pydantic
 
 
 class FoodDto(pydantic.BaseModel):
+    id: int
     name: str
     src: str
     price: str = None
@@ -48,6 +49,7 @@ class SearchSummary(pydantic.BaseModel):
 
 
 class SearchFoodResponseItem(pydantic.BaseModel):
+    favorite_food_item_ids: list = None
     summary: SearchSummary = None
     lowest_price_food_list: list = None
     highest_price_food_list: list = None

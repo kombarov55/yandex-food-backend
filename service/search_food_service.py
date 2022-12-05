@@ -2,22 +2,33 @@ from config import database
 from model.restaurant import PlaceType
 from model.search_food import SearchFoodResponse, FoodDto, FoodChartDto, RestaurantDto, HighlightedRestaurantDto, \
     SearchFoodResponseItem, SearchSummary
-from repository import food_repository, restaurant_repository
+from repository import food_repository, restaurant_repository, food_cache, compilation_repository
 
 
-def find(food_name: str):
+def find(food_name: str, email: str):
     session = database.session_local()
+
+    if food_cache.exists(food_name):
+        cached_rs = food_cache.get(food_name)
+        fav_ids = compilation_repository.find_all(session, email)
+        cached_rs.by_restaurant.favorite_food_item_ids = fav_ids
+        cached_rs.by_shop.favorite_food_item_ids = fav_ids
+        return cached_rs
+
     amount = 5
     restaurants = restaurant_repository.find_restaurants_by_serving_food_name(session, food_name)
 
-    return SearchFoodResponse(
-        by_restaurant=search_food_response_item(session, food_name, amount, restaurants, PlaceType.restaurant),
-        by_shop=search_food_response_item(session, food_name, amount, restaurants, PlaceType.shop)
-    )
+    rs = SearchFoodResponse(
+        by_restaurant=search_food_response_item(session, food_name, amount, restaurants, PlaceType.restaurant, email),
+        by_shop=search_food_response_item(session, food_name, amount, restaurants, PlaceType.shop, email))
+
+    food_cache.save(food_name, rs)
+    return rs
 
 
-def search_food_response_item(session, food_name, amount, restaurants, place_type):
+def search_food_response_item(session, food_name, amount, restaurants, place_type, email):
     return SearchFoodResponseItem(
+        favorite_food_item_ids=compilation_repository.find_all(session, email),
         summary=SearchSummary(
             items_found=food_repository.count(food_name),
             places_found=len(restaurants),

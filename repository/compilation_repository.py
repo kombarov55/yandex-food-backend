@@ -10,6 +10,19 @@ def find(session: Session, email: str, name: str):
         .first()
 
 
+def find_all(session: Session, email: str):
+    all = session.query(CompilationVO) \
+        .filter(CompilationVO.account_email.ilike(email)) \
+        .all()
+
+    result = []
+    for x in all:
+        values = x.values.split(", ")
+        for value in values:
+            result.append(value)
+    return result
+
+
 def add_item(session: Session, email: str, food_id: int):
     vo = find(session, email, "Избранное")
 
