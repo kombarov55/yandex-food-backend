@@ -83,6 +83,7 @@ async def remove_compilation(email: str, name: str, session: Session = Depends(g
 
 @app.get("/account/{email}/compilation")
 async def find_all_compilations(email: str, session: Session = Depends(get_session)):
+    compilation_repository.fix(session)
     return compilation_service.find(session, email)
 
 
